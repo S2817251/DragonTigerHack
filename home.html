@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dragon 🐉 vs Tiger 🐯 Analyser</title>
 <style>
-body { background:#121212; color:#fff; font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:20px; margin:0; }
-.header-box { background:#1e1e1e; width:100%; max-width:400px; padding:20px; border-radius:15px; text-align:center; margin-bottom:20px; box-shadow:0 2px 8px rgba(0,0,0,0.5);}
-.header-box img { width:70px; height:70px; margin-bottom:10px; object-fit:cover; border-radius:50%; }
-.header-box h1 { font-size:20px; font-weight:600; color:#fff; }
-video, canvas { width:100%; max-width:400px; border-radius:12px; border:1px solid #333; margin-bottom:15px; }
-.controls { display:flex; flex-wrap:wrap; gap:10px; width:100%; max-width:400px; margin-bottom:20px; }
-.controls button { flex:1; padding:12px; border:none; border-radius:10px; background:#2e2e2e; color:#fff; font-size:16px; font-weight:500; cursor:pointer; transition:0.2s; }
+body { margin:0; background:#121212; color:#fff; font-family:'Segoe UI',sans-serif; display:flex; flex-direction:column; align-items:center; min-height:100vh; padding:10px; }
+.header-box { background:#1e1e1e; width:100%; max-width:400px; padding:20px; border-radius:15px; text-align:center; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.5);}
+.header-box img { width:70px; height:70px; object-fit:cover; border-radius:50%; margin-bottom:10px; }
+.header-box h1 { font-size:20px; font-weight:600; }
+video, canvas { width:100%; border-radius:12px; border:1px solid #333; margin-bottom:10px; }
+.controls { display:flex; flex-wrap:wrap; gap:8px; width:100%; max-width:400px; margin-bottom:15px; }
+.controls button { flex:1; padding:12px; border:none; border-radius:10px; background:#2e2e2e; color:#fff; font-weight:500; cursor:pointer; transition:0.2s; }
 .controls button:hover { background:#3a3a3a; }
-.popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#1e1e1e; padding:20px 25px; border-radius:15px; display:none; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.7); z-index:1000; }
-.popup h2 { font-size:20px; font-weight:600; color:#fff; }
-.link-box { background:#1e1e1e; width:100%; max-width:400px; padding:15px; border-radius:15px; display:flex; justify-content:space-around; box-shadow:0 2px 8px rgba(0,0,0,0.5); margin-top:auto; }
+.popup { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:#1e1e1e; padding:20px 25px; border-radius:15px; text-align:center; box-shadow:0 4px 15px rgba(0,0,0,0.7); display:none; z-index:1000;}
+.popup h2 { font-size:20px; font-weight:600; }
+.link-box { background:#1e1e1e; width:100%; max-width:400px; padding:12px; border-radius:15px; display:flex; justify-content:space-around; box-shadow:0 2px 8px rgba(0,0,0,0.5); margin-top:auto; }
 .link-box a { padding:10px 15px; border-radius:8px; background:#2e2e2e; color:#fff; text-decoration:none; font-weight:500; transition:0.2s; }
 .link-box a:hover { background:#3a3a3a; }
 </style>
@@ -41,87 +41,104 @@ video, canvas { width:100%; max-width:400px; border-radius:12px; border:1px soli
 <div class="popup" id="popup"><h2 id="popupText"></h2></div>
 
 <div class="link-box">
-  <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">Game Link</a>
-  <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">Telegram Channel</a>
+  <a href="https://your-refer-link.com" target="_blank">Refer Link</a>
+  <a href="https://t.me/your-channel" target="_blank">Telegram Channel</a>
 </div>
 
 <script>
-let video=document.getElementById('camera');
-let canvas=document.getElementById('captureCanvas');
-let ctx=canvas.getContext('2d');
+let video = document.getElementById('camera');
+let canvas = document.getElementById('captureCanvas');
+let ctx = canvas.getContext('2d');
 let stream;
-let frozenImage=null;
+let frozenImage = null;
 
-const startCamBtn=document.getElementById('startCam');
-const stopCamBtn=document.getElementById('stopCam');
-const captureBtn=document.getElementById('capture');
-const analyseBtn=document.getElementById('analyse');
-const restartBtn=document.getElementById('restart');
-const popup=document.getElementById('popup');
-const popupText=document.getElementById('popupText');
+const startCamBtn = document.getElementById('startCam');
+const stopCamBtn = document.getElementById('stopCam');
+const captureBtn = document.getElementById('capture');
+const analyseBtn = document.getElementById('analyse');
+const restartBtn = document.getElementById('restart');
+const popup = document.getElementById('popup');
+const popupText = document.getElementById('popupText');
 
-startCamBtn.onclick=async()=>{
-  try{
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"environment"}},audio:false});
-    video.srcObject=stream;
-  }catch(err){ showPopup("Error: Camera not accessible"); }
+// Start Camera
+startCamBtn.onclick = async () => {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { exact: "environment" } },
+      audio: false
+    });
+    video.srcObject = stream;
+  } catch (err) { showPopup("Error: Camera not accessible"); }
 };
 
-stopCamBtn.onclick=()=>{
-  if(stream){ stream.getTracks().forEach(track=>track.stop()); video.srcObject=null; frozenImage=null; }
+// Stop Camera
+stopCamBtn.onclick = () => {
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+    video.srcObject = null;
+    frozenImage = null;
+  }
 };
 
-captureBtn.onclick=()=>{
-  if(!stream){ showPopup("Error: Camera not started"); return; }
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  frozenImage=ctx.getImageData(0,0,canvas.width,canvas.height);
-  video.style.display='none'; canvas.style.display='block'; // freeze video
+// Capture
+captureBtn.onclick = () => {
+  if (!stream) { showPopup("Error: Camera not started"); return; }
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  frozenImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  video.style.display = 'none';
+  canvas.style.display = 'block';
   showPopup("Captured! Ready to Analyse");
 };
 
-analyseBtn.onclick=()=>{
-  if(!frozenImage){ showPopup("Error: No capture available"); return; }
-  showPopup("Analysing...");
-  setTimeout(()=>{
-    const result=analyseDragonTiger(frozenImage);
-    showPopup(result,3000);
-    // clear after analyse
-    frozenImage=null; video.style.display='block'; canvas.style.display='none';
-  },2000);
+// Analyse
+analyseBtn.onclick = () => {
+  if (!frozenImage) { showPopup("Error: No capture available"); return; }
+  showPopup("Analysing...", 2000);
+  setTimeout(() => {
+    const result = analyseDragonTiger(frozenImage);
+    showPopup(result, 3000, true); // auto reset after popup
+  }, 2000);
 };
 
-restartBtn.onclick=()=>{ location.reload(); };
+// Restart
+restartBtn.onclick = () => location.reload();
 
-function showPopup(msg,duration=2000){
-  popupText.textContent=msg;
-  popup.style.display='block';
-  setTimeout(()=>{popup.style.display='none';},duration);
+// Popup function
+function showPopup(msg, duration = 2000, autoReset = false) {
+  popupText.textContent = msg;
+  popup.style.display = 'block';
+  setTimeout(() => {
+    popup.style.display = 'none';
+    if (autoReset) location.reload();
+  }, duration);
 }
 
-/* 0% random analyser */
-function analyseDragonTiger(imageData){
-  const data=imageData.data;
-  const width=imageData.width;
-  const height=imageData.height;
-  let dragonScore=0,tigerScore=0;
+// 0% random analyser
+function analyseDragonTiger(imageData) {
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  let dragonScore = 0, tigerScore = 0;
 
-  for(let y=0;y<height;y+=5){
-    for(let x=0;x<width;x+=5){
-      const i=(y*width+x)*4;
-      const r=data[i], g=data[i+1], b=data[i+2];
-      if(x<width/2 && r>150 && g<100 && b<100) dragonScore++;
-      if(x>=width/2 && b>150 && r<100 && g<100) tigerScore++;
+  for (let y = 0; y < height; y += 5) {
+    for (let x = 0; x < width; x += 5) {
+      const i = (y * width + x) * 4;
+      const r = data[i], g = data[i + 1], b = data[i + 2];
+      if (x < width / 2 && r > 150 && g < 100 && b < 100) dragonScore++;
+      if (x >= width / 2 && b > 150 && r < 100 && g < 100) tigerScore++;
     }
   }
 
-  const total=dragonScore+tigerScore;
-  if(total===0) return "Error: No Dragon/Tiger history detected"; // 0% random
-  const dragonPercent=(dragonScore/total)*100;
-  const tigerPercent=(tigerScore/total)*100;
-  if(Math.abs(dragonPercent-tigerPercent)<10) return `Tie ${dragonPercent.toFixed(0)}% - ${tigerPercent.toFixed(0)}%`;
-  return dragonPercent>tigerPercent?"Dragon 🐉":"Tiger 🐯";
+  const total = dragonScore + tigerScore;
+  if (total === 0) return "Error: No Dragon/Tiger history detected"; // 0% random
+  const dragonPercent = (dragonScore / total) * 100;
+  const tigerPercent = (tigerScore / total) * 100;
+
+  if (Math.abs(dragonPercent - tigerPercent) < 10)
+    return `Tie ${dragonPercent.toFixed(0)}% - ${tigerPercent.toFixed(0)}%`;
+  return dragonPercent > tigerPercent ? "Dragon 🐉" : "Tiger 🐯";
 }
 </script>
 
