@@ -1,443 +1,230 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Dragon 🐉 vs Tiger 🐯 — Mobile Analyser</title>
-<style>
-  :root{
-    --bg:#0f1113; --card:#171819; --muted:#9aa0a6; --btn:#2b2d2f; --accent:#2f9cff;
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0; padding:12px; font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
-    background:linear-gradient(180deg,#08090a,#121314); color:#fff; display:flex; justify-content:center;
-  }
-  .app{width:100%; max-width:420px; display:flex; flex-direction:column; gap:12px; align-items:stretch;}
-  .header{background:var(--card); border-radius:12px; padding:12px; display:flex; gap:12px; align-items:center;}
-  .logo{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#0b0b0b;flex:0 0 56px}
-  .logo img{width:100%;height:100%;object-fit:cover;display:block}
-  .title{font-weight:700;font-size:16px}
-  .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
-  .viewer{display:flex;flex-direction:column;gap:8px}
-  video, canvas{width:100%;border-radius:10px;border:1px solid #222;background:#000;height:auto}
-  .controls{display:flex;gap:8px;flex-wrap:wrap}
-  .controls button{flex:1;min-width:84px;padding:12px;border-radius:10px;border:0;background:var(--btn);color:#fff;font-weight:700;cursor:pointer}
-  .controls button:disabled{opacity:0.45; cursor:not-allowed}
-  .note{font-size:12px;color:var(--muted);text-align:center}
-  .links{display:flex;gap:8px;justify-content:space-around;padding:10px;background:var(--card);border-radius:12px}
-  .links a{color:#fff;text-decoration:none;background:#222;padding:9px 12px;border-radius:10px;font-weight:700}
-  .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);padding:14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);z-index:4000;display:none;text-align:center;min-width:220px;}
-  .popup h2{margin:0 0 6px;font-size:18px}
-  .warning{background:#2b1a1a;color:#ffddd2;padding:8px;border-radius:8px;text-align:center;font-weight:700}
-  @media(min-width:900px){ .app{max-width:700px} }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DragonTiger Analyzer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container { width: 100%; max-width: 430px; }
+
+    /* Header */
+    .header {
+      background: #1e293b;
+      padding: 14px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+    .logo {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      margin-right: 12px;
+      object-fit: cover;
+    }
+    .title { font-size: 16px; font-weight: bold; }
+    .version { font-size: 12px; opacity: 0.6; }
+
+    /* Camera Box */
+    .camera-box {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 16px;
+      text-align: center;
+      margin-bottom: 18px;
+    }
+    video, canvas {
+      width: 100%;
+      max-height: 230px;
+      border-radius: 12px;
+      background: black;
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 14px;
+    }
+    button {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #fff;
+      transition: 0.2s;
+    }
+    .start { background: linear-gradient(135deg,#3b82f6,#2563eb); }
+    .stop { background: linear-gradient(135deg,#64748b,#475569); }
+    .capture { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+    .analyse { background: linear-gradient(135deg,#8b5cf6,#7c3aed); }
+    .restart { background: linear-gradient(135deg,#ef4444,#dc2626); margin-top:14px; width:100%; }
+
+    /* Links Box */
+    .links-box {
+      background: #1e293b;
+      padding: 12px;
+      border-radius: 16px;
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+    .links-box button {
+      flex: 1;
+      background: #334155;
+    }
+
+    /* Popup */
+    .popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease-in-out;
+      z-index: 1000;
+      color: #fff;
+    }
+    .popup.show { opacity: 1; }
+    .popup.blue { background: #2563eb; }
+    .popup.red { background: #dc2626; }
+    .popup.sky { background: #0ea5e9; }
+    .popup.error { background: #475569; }
+  </style>
 </head>
 <body>
-  <div class="app" id="app">
+  <div class="container">
+    <!-- Header -->
     <div class="header">
-      <div class="logo"><img src="logo.png" alt="logo"></div>
-      <div style="display:flex;flex-direction:column">
-        <div class="title">Dragon 🐉 vs Tiger 🐯 Analyser</div>
-        <div class="subtitle">Mobile-only · Back camera · 0% random</div>
+      <img src="logo.png" alt="Logo" class="logo">
+      <div>
+        <div class="title">DragonTiger Analyzer</div>
+        <div class="version">Premium mobile analyser v1.0</div>
       </div>
     </div>
 
-    <div class="viewer">
-      <video id="camera" playsinline autoplay muted></video>
-      <canvas id="captureCanvas" style="display:none"></canvas>
-      <div class="note" id="status">Start camera, point to the single-line history (the 1-row/strip of past results), then press Capture.</div>
+    <!-- Camera Box -->
+    <div class="camera-box">
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" width="1260" height="708" style="display:none;"></canvas>
+
+      <div class="btn-row">
+        <button class="start" onclick="startCamera()">Start</button>
+        <button class="stop" onclick="stopCamera()">Stop</button>
+      </div>
+      <div class="btn-row">
+        <button class="capture" onclick="capture()">Capture</button>
+        <button class="analyse" onclick="analyse()">Analyse</button>
+      </div>
+      <button class="restart" onclick="location.reload()">Restart</button>
     </div>
 
-    <div class="controls">
-      <button id="startCam">Start Camera</button>
-      <button id="stopCam">Stop Camera</button>
-      <button id="capture">Capture</button>
-      <button id="analyse">Analyse</button>
-      <button id="restart">Restart</button>
-    </div>
-
-    <div class="links">
-      <a id="ref" href="https://your-refer-link.com" target="_blank">Refer Link</a>
-      <a id="tg" href="https://t.me/your-channel" target="_blank">Telegram Channel</a>
+    <!-- Links Box -->
+    <div class="links-box">
+      <button onclick="window.open('#','_blank')">Game Link</button>
+      <button onclick="window.open('#','_blank')">Channel Link</button>
     </div>
   </div>
 
-  <div class="popup" id="popup"><h2 id="popupTitle"></h2><div id="popupText" style="color:var(--muted);margin-top:6px;font-size:13px"></div></div>
+  <!-- Popup -->
+  <div class="popup" id="popup"></div>
 
-<script>
-/*
-  Final strict single-line analyser (mobile only).
-  - Only back camera (ideal). If desktop detected -> warning & start disabled.
-  - Capture freezes (video hidden, canvas shown). Capture size is compact (~78% of natural width).
-  - Analyse is strict: only single-line strip is analysed. Otherwise Error.
-  - Colors: Blue => Dragon; Orange/Red => Tiger; Cyan/sky/green => Tie.
-  - Decision rules: Dragon/Tiger single result only when clear majority; Tie shown with associated likely side or percentages.
-  - After popup, capture unfreezes (camera resumes). No page reload.
-*/
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const popup = document.getElementById("popup");
+    let stream = null, captured = false;
 
-const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-if(!isMobile){
-  document.getElementById('warningDesktop').style.display='block';
-  // disable start to prevent desktop camera use
-  document.getElementById('startCam').disabled = true;
-}
-
-const video = document.getElementById('camera');
-const canvas = document.getElementById('captureCanvas');
-const ctx = canvas.getContext('2d');
-
-const startBtn = document.getElementById('startCam');
-const stopBtn = document.getElementById('stopCam');
-const captureBtn = document.getElementById('capture');
-const analyseBtn = document.getElementById('analyse');
-const restartBtn = document.getElementById('restart');
-
-const status = document.getElementById('status');
-const popup = document.getElementById('popup');
-const popupTitle = document.getElementById('popupTitle');
-const popupText = document.getElementById('popupText');
-
-let stream = null;
-let frozenImageData = null;
-
-function setStatus(t){ status.textContent = t; }
-function showPopup(title, text='', dur=3000, cb=null){
-  popupTitle.textContent = title; popupText.textContent = text; popup.style.display='block';
-  setTimeout(()=>{ popup.style.display='none'; if(cb) cb(); }, dur);
-}
-
-// Start camera (try exact environment then ideal fallback)
-async function startCamera(){
-  if(!isMobile){ showPopup('Error','Open on a mobile phone with back camera.'); return; }
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: { exact: "environment" }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-  }catch(e){
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode: { ideal: "environment" }, width:{ideal:1280}, height:{ideal:720} }, audio:false });
-    }catch(err){
-      console.error(err);
-      showPopup('Error','Camera not accessible — allow permission or use a phone with back camera.',3500);
-      return;
+    function showPopup(msg,type){
+      popup.innerText = msg;
+      popup.className = "popup " + type + " show";
+      setTimeout(()=> popup.classList.remove("show"), 3000);
     }
-  }
-  video.srcObject = stream;
-  setStatus('Camera started. Point to the single-line history and press Capture.');
-}
-startBtn.addEventListener('click', startCamera);
 
-// Stop camera
-stopBtn.addEventListener('click', ()=>{
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null; }
-  frozenImageData=null;
-  canvas.style.display='none'; video.style.display='block';
-  setStatus('Camera stopped.');
-});
+    async function startCamera(){
+      // Mobile only check
+      const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      if(!isMobile){
+        showPopup("Please open on mobile device!","error");
+        return;
+      }
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch(e){ showPopup("Camera Error!","error"); }
+    }
+    function stopCamera(){
+      if(stream){ stream.getTracks().forEach(track => track.stop()); video.srcObject=null; }
+    }
+    function capture(){
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      video.style.display = "none";
+      canvas.style.display = "block";
+      captured = true;
+    }
+    function analyse(){
+      if(!captured){ showPopup("Please capture first!","error"); return; }
 
-// Capture (freeze)
-captureBtn.addEventListener('click', ()=>{
-  if(!stream){ showPopup('Error','Start camera first'); return; }
-  const naturalW = video.videoWidth || 1280;
-  const naturalH = video.videoHeight || 720;
-  const scale = Math.min(0.78, Math.min(900 / naturalW, 1)); // compact capture size like YouTube preview
-  canvas.width = Math.round(naturalW * scale);
-  canvas.height = Math.round(naturalH * scale);
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  frozenImageData = ctx.getImageData(0,0,canvas.width,canvas.height);
+      // Analyse ONLY fixed Dragon-Tiger strip (example: y=300 to y=340)
+      const stripTop = 300;
+      const stripHeight = 40;
+      const data = ctx.getImageData(0, stripTop, canvas.width, stripHeight).data;
 
-  // strict validation: must be single-line history presence
-  if(!validateSingleLine(frozenImageData)){
-    frozenImageData = null;
-    showPopup('Error','No valid single-line history detected. Point to the history strip (one row of small dots) and try again.',2200);
-    return;
-  }
-  video.style.display='none';
-  canvas.style.display='block';
-  setStatus('Captured (frozen). Press Analyse.');
-  showPopup('Captured','Ready to analyse.',900);
-});
+      // Decode history into sequence
+      let history = [];
+      for(let i=0;i<data.length;i+=4){
+        const r=data[i], g=data[i+1], b=data[i+2];
+        if(b>150 && r<100) history.push("D");
+        else if(r>150 && g<120) history.push("T");
+        else if(b>170 && g>170) history.push("X"); // Tie
+      }
 
-// Analyse
-analyseBtn.addEventListener('click', ()=>{
-  if(!frozenImageData){ showPopup('Error','No capture available'); return; }
-  setStatus('Analysing (2s)...');
-  showPopup('Analysing','Please wait...',2000);
-  setTimeout(()=>{
-    try{
-      const out = analyseSingleLine(frozenImageData);
-      if(!out.valid){
-        showPopup('Error', out.message, 2500, unfreeze);
+      if(history.length<20){
+        showPopup("Invalid capture!","error");
       } else {
-        showPopup('Result', out.message, 3000, unfreeze);
+        // Pattern analyser
+        let result="", type="";
+        const last = history.slice(-6);
+
+        if(/(D{3,})$/.test(last.join(""))){ result="Next: Tiger"; type="red"; }
+        else if(/(T{3,})$/.test(last.join(""))){ result="Next: Dragon"; type="blue"; }
+        else if(/(DT){3,}$/.test(last.join(""))){ result="Next: Dragon"; type="blue"; }
+        else if(/(TD){3,}$/.test(last.join(""))){ result="Next: Tiger"; type="red"; }
+        else if(last.includes("X")){ 
+          if(last[last.length-2]==="D"){ result="Next: Dragon + Tie"; type="sky"; }
+          else { result="Next: Tiger + Tie"; type="sky"; }
+        } else {
+          result="Next: Dragon"; type="blue";
+        }
+
+        showPopup(result,type);
       }
-    }catch(err){
-      console.error(err);
-      showPopup('Error','Analysis failed. Try again.',2200, unfreeze);
+
+      setTimeout(()=>{
+        video.style.display="block";
+        canvas.style.display="none";
+        captured=false;
+      }, 3000);
     }
-  }, 2000);
-});
-
-// Restart (reset camera state)
-restartBtn.addEventListener('click', ()=>{
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null; }
-  frozenImageData=null; canvas.style.display='none'; video.style.display='block';
-  setStatus('Restarted. Start camera.');
-});
-
-// Unfreeze after showing result/error
-function unfreeze(){
-  video.style.display='block';
-  canvas.style.display='none';
-  frozenImageData = null;
-  setStatus('Ready. Capture again if needed.');
-}
-
-/* ----------------- Strict validation for a one-line history ----------------- */
-function validateSingleLine(imageData){
-  const {data,width,height} = imageData;
-  let colorful=0, total=0;
-  let minX=width, minY=height, maxX=0, maxY=0;
-  const step=6;
-  for(let y=0;y<height;y+=step){
-    for(let x=0;x<width;x+=step){
-      total++;
-      const i=(y*width+x)*4;
-      const r=data[i], g=data[i+1], b=data[i+2];
-      const mx=Math.max(r,g,b), mn=Math.min(r,g,b);
-      if(mx>70 && (mx-mn)>40){
-        colorful++;
-        if(x<minX) minX=x; if(y<minY) minY=y;
-        if(x>maxX) maxX=x; if(y>maxY) maxY=y;
-      }
-    }
-  }
-  if(total===0) return false;
-  const frac = colorful/total;
-  if(frac < 0.02) return false;
-  const bboxW = Math.max(0, maxX-minX), bboxH = Math.max(0, maxY-minY);
-  if(bboxW < Math.min(width*0.12,120) && bboxH < Math.min(height*0.12,120)) return false;
-  // ensure elongated box (one-dimension considerably longer)
-  const ratio = Math.max(bboxW/(bboxH||1), bboxH/(bboxW||1));
-  if(ratio < 1.6) return false;
-  return true;
-}
-
-/* ----------------- Main analysis for single-line ----------------- */
-function analyseSingleLine(imageData){
-  const {data,width,height} = imageData;
-  // 1) collect colorful samples
-  const samples=[];
-  const step = 3;
-  for(let y=0;y<height;y+=step){
-    for(let x=0;x<width;x+=step){
-      const i=(y*width+x)*4;
-      const r=data[i], g=data[i+1], b=data[i+2];
-      const mx=Math.max(r,g,b), mn=Math.min(r,g,b);
-      if(mx>60 && (mx-mn)>35) samples.push({r,g,b,x,y});
-    }
-  }
-  if(samples.length < 100) return {valid:false, message:'Error: Not enough colored pixels to analyse.'};
-
-  // 2) cluster colors (k=3) and label clusters
-  const centers = kMeansRGB(samples,3,12);
-  const labels = labelCenters(centers); // 'dragon'|'tiger'|'tie'|'other'
-  const assigned = samples.map(s=>{ let best=0,bd=Infinity; for(let i=0;i<centers.length;i++){ const d=colorDistSqRgb(s,centers[i]); if(d<bd){bd=d;best=i}}; return {...s,cluster:best,label:labels[best]}; });
-
-  // 3) histograms to detect line orientation and peaks
-  const xHist = new Array(width).fill(0), yHist = new Array(height).fill(0);
-  for(const s of assigned){ xHist[s.x]++; yHist[s.y]++; }
-  const xs = smoothArray(xHist,5), ys = smoothArray(yHist,5);
-  const peaksX = findPeaks(xs,0.25, Math.max(4,Math.floor(width/60)));
-  const peaksY = findPeaks(ys,0.25, Math.max(4,Math.floor(height/60)));
-
-  const orientation = (peaksX.length >= Math.max(6, peaksY.length)) ? 'H' : 'V';
-  let cellCenters = [];
-
-  if(orientation === 'H' && peaksX.length >= 6){
-    const bestY = yHist.indexOf(Math.max(...yHist));
-    cellCenters = peaksX.map(px=>({x:px, y:bestY}));
-  } else if(orientation === 'V' && peaksY.length >= 6){
-    const bestX = xHist.indexOf(Math.max(...xHist));
-    cellCenters = peaksY.map(py=>({x:bestX, y:py}));
-  } else {
-    // fallback: bounding box sampling along longer axis
-    let minX=width,minY=height,maxX=0,maxY=0;
-    for(const s of assigned){ if(s.x<minX)minX=s.x; if(s.y<minY)minY=s.y; if(s.x>maxX)maxX=s.x; if(s.y>maxY)maxY=s.y; }
-    const bboxW=maxX-minX, bboxH=maxY-minY;
-    if(bboxW >= bboxH){
-      const approx = Math.max(8, Math.round(bboxW / Math.max(10, bboxW/20)));
-      const yC = Math.round((minY+maxY)/2);
-      for(let i=0;i<approx;i++){ const x = Math.round(minX + (i+0.5)*(bboxW/approx)); cellCenters.push({x,y:yC}); }
-    } else {
-      const approx = Math.max(8, Math.round(bboxH / Math.max(10, bboxH/20)));
-      const xC = Math.round((minX+maxX)/2);
-      for(let i=0;i<approx;i++){ const y = Math.round(minY + (i+0.5)*(bboxH/approx)); cellCenters.push({x:xC,y}); }
-    }
-  }
-
-  if(cellCenters.length < 8) return {valid:false, message:'Error: Unable to extract enough cells from the history line.'};
-
-  // 4) classify each cell by sampling nearby assigned samples and detecting numbers (white)
-  const positions = cellCenters;
-  const diffs = positions.length>1 ? medianDiff(positions.map(c=>orientation==='H'?c.x:c.y)) : 20;
-  const cellR = Math.max(4, Math.floor(diffs/3));
-  const votes = [];
-  for(const c of positions){
-    const counts = {dragon:0,tiger:0,tie:0,other:0};
-    for(const s of assigned){
-      const dx = s.x - c.x, dy = s.y - c.y;
-      if(dx*dx + dy*dy <= cellR*cellR){
-        if(s.label==='dragon') counts.dragon++;
-        else if(s.label==='tiger') counts.tiger++;
-        else if(s.label==='tie') counts.tie++;
-        else counts.other++;
-      }
-    }
-    // detect white numeric pixels as tie indicator
-    let numericDetected=false;
-    const cx = Math.max(0, Math.min(width-1, c.x));
-    const cy = Math.max(0, Math.min(height-1, c.y));
-    const rCheck = Math.max(2, Math.floor(cellR/2));
-    for(let yy=Math.max(0,cy-rCheck); yy<=Math.min(height-1,cy+rCheck) && !numericDetected; yy++){
-      for(let xx=Math.max(0,cx-rCheck); xx<=Math.min(width-1,cx+rCheck); xx++){
-        const idx=(yy*width+xx)*4;
-        const pr=data[idx], pg=data[idx+1], pb=data[idx+2];
-        if(pr>200 && pg>200 && pb>200){ numericDetected=true; break; }
-      }
-    }
-
-    const maxc = Math.max(counts.dragon, counts.tiger, counts.tie);
-    if(maxc === 0 && numericDetected) votes.push('tie');
-    else if(maxc === 0) votes.push('empty');
-    else if(counts.dragon === maxc && counts.dragon >= counts.tiger && counts.dragon >= counts.tie) votes.push('dragon');
-    else if(counts.tiger === maxc && counts.tiger >= counts.dragon && counts.tiger >= counts.tie) votes.push('tiger');
-    else if(counts.tie === maxc) votes.push('tie');
-    else votes.push('empty');
-  }
-
-  // 5) summarize and final decision
-  const summary = votes.reduce((acc,v)=>{
-    if(v==='dragon') acc.dragon++;
-    else if(v==='tiger') acc.tiger++;
-    else if(v==='tie') acc.tie++;
-    else acc.empty++;
-    return acc;
-  }, {dragon:0,tiger:0,tie:0,empty:0});
-
-  const labeled = summary.dragon + summary.tiger + summary.tie;
-  if(labeled < 8) return {valid:false, message:'Error: Not enough labeled history cells detected. Aim camera to the one-line history.'};
-
-  const dp = (summary.dragon / labeled) * 100;
-  const tp = (summary.tiger  / labeled) * 100;
-  const tiep = (summary.tie   / labeled) * 100;
-
-  // Decision rules: strict, 0% random
-  if(dp >= 55 && dp - tp >= 8) return {valid:true, message:'Dragon 🐉'};
-  if(tp >= 55 && tp - dp >= 8) return {valid:true, message:'Tiger 🐯'};
-  if(tiep >= 40){
-    const side = dp > tp ? 'Dragon 🐉' : 'Tiger 🐯';
-    return {valid:true, message:`Tie (${Math.round(tiep)}%) & ${side}`};
-  }
-  if(Math.abs(dp - tp) <= 10) return {valid:true, message:`Tie ${Math.round(dp)}% - ${Math.round(tp)}%`};
-  return {valid:true, message: dp > tp ? 'Dragon 🐉' : 'Tiger 🐯'};
-}
-
-/* ----------------- Utilities ----------------- */
-
-function colorDistSqRgb(a,b){ const dr=a.r-b.r, dg=a.g-b.g, db=a.b-b.b; return dr*dr + dg*dg + db*db; }
-
-function kMeansRGB(samples, k=3, maxIter=12){
-  const n = samples.length;
-  const centers = [];
-  const used = new Set();
-  while(centers.length<k){
-    const idx = Math.floor(Math.random()*n);
-    if(used.has(idx)) continue;
-    used.add(idx);
-    centers.push({r:samples[idx].r,g:samples[idx].g,b:samples[idx].b});
-  }
-  for(let iter=0; iter<maxIter; iter++){
-    const buckets = Array.from({length:k}, ()=>({sumR:0,sumG:0,sumB:0,count:0}));
-    for(const s of samples){
-      let best=0, bd=Infinity;
-      for(let i=0;i<k;i++){ const d=colorDistSqRgb(s, centers[i]); if(d<bd){bd=d;best=i} }
-      const b=buckets[best]; b.sumR+=s.r; b.sumG+=s.g; b.sumB+=s.b; b.count++;
-    }
-    let changed=false;
-    for(let i=0;i<k;i++){
-      const b=buckets[i];
-      if(b.count===0){
-        const idx=Math.floor(Math.random()*n);
-        centers[i]={r:samples[idx].r,g:samples[idx].g,b:samples[idx].b};
-        changed=true;
-      } else {
-        const nr=Math.round(b.sumR/b.count), ng=Math.round(b.sumG/b.count), nb=Math.round(b.sumB/b.count);
-        if(nr!==centers[i].r||ng!==centers[i].g||nb!==centers[i].b){ centers[i]={r:nr,g:ng,b:nb}; changed=true; }
-      }
-    }
-    if(!changed) break;
-  }
-  return centers;
-}
-
-function labelCenters(centers){
-  const scores = centers.map(c=>{
-    const blueScore = c.b - (c.r + c.g)/2;
-    const orangeScore = c.r - (c.g + c.b)/2;
-    const cyanScore = (c.g + c.b)/2 - c.r;
-    return {blueScore, orangeScore, cyanScore};
-  });
-  const labels = new Array(centers.length).fill('other');
-  for(let i=0;i<centers.length;i++){
-    const s = scores[i];
-    if(s.blueScore > 30 && s.blueScore >= s.cyanScore && s.blueScore >= s.orangeScore) labels[i]='dragon';
-    else if(s.orangeScore > 30 && s.orangeScore >= s.blueScore && s.orangeScore >= s.cyanScore) labels[i]='tiger';
-    else if(s.cyanScore > 22 && s.cyanScore >= s.blueScore && s.cyanScore >= s.orangeScore) labels[i]='tie';
-    else labels[i]='other';
-  }
-  // ensure best-effort labels
-  if(!labels.includes('dragon')){
-    let best=0,val=-Infinity; for(let i=0;i<scores.length;i++) if(scores[i].blueScore>val){val=scores[i].blueScore;best=i;}
-    if(val>8) labels[best]='dragon';
-  }
-  if(!labels.includes('tiger')){
-    let best=0,val=-Infinity; for(let i=0;i<scores.length;i++) if(scores[i].orangeScore>val){val=scores[i].orangeScore;best=i;}
-    if(val>8) labels[best]='tiger';
-  }
-  if(!labels.includes('tie')){
-    let best=0,val=-Infinity; for(let i=0;i<scores.length;i++) if(scores[i].cyanScore>val){val=scores[i].cyanScore;best=i;}
-    if(val>8) labels[best]='tie';
-  }
-  return labels;
-}
-
-function smoothArray(arr, w=5){
-  const out = new Array(arr.length).fill(0); const half=Math.floor(w/2);
-  for(let i=0;i<arr.length;i++){ let sum=0,c=0; for(let j=Math.max(0,i-half); j<=Math.min(arr.length-1,i+half); j++){ sum+=arr[j]; c++; } out[i]=sum/c; }
-  return out;
-}
-
-function findPeaks(arr, minProm=0.2, minSep=6){
-  const peaks=[]; const mx=Math.max(...arr); const thr = mx * minProm;
-  for(let i=1;i<arr.length-1;i++){
-    if(arr[i] > arr[i-1] && arr[i] >= arr[i+1] && arr[i] >= thr){
-      if(peaks.length && (i - peaks[peaks.length-1]) < minSep){
-        if(arr[i] > arr[peaks[peaks.length-1]]) peaks[peaks.length-1] = i;
-      } else peaks.push(i);
-    }
-  }
-  return peaks;
-}
-
-function medianDiff(arr){
-  if(arr.length<2) return 0;
-  const diffs=[];
-  for(let i=1;i<arr.length;i++) diffs.push(Math.abs(arr[i]-arr[i-1]));
-  diffs.sort((a,b)=>a-b);
-  return diffs[Math.floor(diffs.length/2)];
-}
-
-</script>
+  </script>
 </body>
 </html>
