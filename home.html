@@ -4,10 +4,6 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>DragonTiger Analyzer — Final</title>
-
-<!-- Tesseract.js (OCR fallback) -->
-<script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
-
 <style>
   :root{--bg:#071225;--card:#0b1220;--accent:#2563eb}
   *{box-sizing:border-box;font-family:Inter,Arial,sans-serif}
@@ -17,62 +13,59 @@
   header{display:flex;align-items:center;gap:12px}
   .logo{width:44px;height:44px;border-radius:10px;object-fit:cover}
   h1{margin:0;font-size:18px}
-  p.sub{margin:0;font-size:12px;opacity:.7}
-  .camera{position:relative}
-  video, canvas{width:100%;border-radius:10px;background:#000;display:block}
-  /* guide strip (visual only) */
-  .guide{position:absolute;left:6%;right:6%;top:46%;height:12%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);pointer-events:none}
-  /* buttons */
-  .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-  .btn{flex:1 1 calc(50% - 10px);padding:12px;border-radius:10px;border:none;font-weight:800;cursor:pointer;color:#fff}
-  .btn.primary{background:linear-gradient(135deg,#2563eb,#1e40af)}
-  .btn.ghost{background:#334155}
-  .restart{background:linear-gradient(135deg,#ef4444,#b91c1c);width:60%;margin:12px auto;display:block}
+  .sub{margin:0;font-size:12px;opacity:.7}
+  .camera{position:relative;text-align:center}
+  /* FIXED preview size */
+  #video, #canvas { width:360px; height:200px; border-radius:10px; background:#000; object-fit:cover; display:block; margin:0 auto; border:2px solid var(--accent) }
+  .guide{position:relative;width:360px;margin:0 auto;pointer-events:none;height:0}
+  .guide .strip{position:absolute;left:6%;right:6%;top:46%;height:14%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);box-sizing:border-box}
+  .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;justify-content:center}
+  .btn{flex:1 1 calc(50% - 10px);min-width:120px;padding:12px;border-radius:10px;border:none;font-weight:800;cursor:pointer;color:#fff;background:linear-gradient(135deg,#2563eb,#1e40af)}
+  .ghost{background:#334155}
+  .restart{display:block;margin:12px auto;padding:10px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-weight:900}
   .links{display:flex;gap:10px;margin-top:10px}
   .linkBtn{flex:1;text-decoration:none;text-align:center;padding:12px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;font-weight:800}
+  .status{font-size:13px;opacity:.85;text-align:center;margin-top:8px}
   /* popup */
   .popup{position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:10px;font-weight:900;color:#fff;display:none;z-index:999}
-  .popup.show{display:block;animation:popupAnim .28s ease}
+  .popup.show{display:block;animation:popupAnim .25s ease}
   @keyframes popupAnim{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
   .dragon{background:#2563eb} .tiger{background:#f97316} .tie{background:#0ea5e9} .error{background:#475569}
-  .status{font-size:13px;opacity:.8;text-align:center;margin-top:8px}
   @media(min-width:700px){ .wrap{max-width:640px} }
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <!-- Header -->
   <div class="card">
     <header>
       <img src="logo.png" alt="logo" class="logo">
       <div>
         <h1>DragonTiger Analyzer</h1>
-        <p class="sub">Mobile only — capture history strip (fixed)</p>
+        <p class="sub">Mobile only — fixed capture 360×200</p>
       </div>
-      <div style="margin-left:auto;font-size:12px;opacity:.7">v2.0</div>
+      <div style="margin-left:auto;font-size:12px;opacity:.7">v3.0</div>
     </header>
   </div>
 
-  <!-- Camera Area -->
   <div class="card camera">
-    <!-- video preview shown; canvas used for fixed capture 640x360 -->
-    <video id="video" autoplay playsinline muted></video>
-    <canvas id="canvas" width="640" height="360" style="display:none"></canvas>
-    <div class="guide" aria-hidden="true"></div>
+    <div class="camera">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="canvas" width="360" height="200" style="display:none"></canvas>
+      <div class="guide"><div class="strip"></div></div>
+    </div>
 
     <div class="buttons">
-      <button id="startBtn" class="btn primary">Start Camera</button>
+      <button id="startBtn" class="btn">Start Camera</button>
       <button id="stopBtn" class="btn ghost">Stop Camera</button>
-      <button id="captureBtn" class="btn primary">Capture</button>
-      <button id="analyseBtn" class="btn primary">Analyse</button>
+      <button id="captureBtn" class="btn">Capture</button>
+      <button id="analyseBtn" class="btn">Analyse</button>
     </div>
 
     <button id="restartBtn" class="restart">Restart</button>
     <div class="status" id="status">Status: Idle</div>
   </div>
 
-  <!-- Links -->
   <div class="card">
     <div class="links">
       <a class="linkBtn" href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank" rel="noopener">Game Link</a>
@@ -82,42 +75,27 @@
 
 </div>
 
-<!-- Popup -->
 <div id="popup" class="popup"></div>
 
 <script>
-/*
-Final strict client-side analyzer:
-- Mobile-only guard: userAgent + viewport < 768.
-- Fixed internal capture canvas: 640x360.
-- Analyze only fixed horizontal strip inside canvas (config STRIP_TOP/HEIGHT).
-- Divide strip into 20 bins; color detect each bin; fallback OCR per-bin if color ambiguous.
-- Require MIN_VALID_BINS (>=16). If not, Invalid capture.
-- Pattern-based decision (no randomness).
-- Popup shows short result (Next: ...), 3s.
-- No images uploaded anywhere (client-side only).
-*/
-
-const isUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
-const isViewportMobile = window.innerWidth < 768;
-const isMobile = isUA && isViewportMobile;
-
-if(!isMobile){
-  // Replace page with clear message and stop further execution
+/* Strict mobile-only guard */
+const uaMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const viewportMobile = window.innerWidth < 768;
+if(!uaMobile || !viewportMobile){
   document.body.innerHTML = `
-    <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:${getComputedStyle(document.body).background}">
-      <div style="max-width:700px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#081226,#071427);text-align:center;color:#fff">
+    <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:#071225;color:#fff;text-align:center;padding:20px">
+      <div style="max-width:700px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#081226,#071427)">
         <div style="font-weight:800;font-size:20px;margin-bottom:8px">Please open on mobile device</div>
-        <div style="opacity:.85;margin-bottom:12px">This analyzer runs only on mobile. Camera access on desktop/laptop is disabled for privacy.</div>
+        <div style="opacity:.85;margin-bottom:12px">Camera access is disabled on desktops/laptops for privacy.</div>
         <div><button onclick="location.reload()" style="padding:10px 14px;border-radius:8px;border:none;background:#2563eb;color:#fff;font-weight:800">Check again</button></div>
       </div>
     </div>`;
   throw new Error('Not mobile');
 }
 
-/* DOM elements */
+/* Elements */
 const video = document.getElementById('video');
-const canvas = document.getElementById('canvas'); // fixed 640x360
+const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
@@ -127,48 +105,31 @@ const restartBtn = document.getElementById('restartBtn');
 const popup = document.getElementById('popup');
 const statusEl = document.getElementById('status');
 
-/* CONFIG - tweak if required */
-const STRIP_TOP = Math.round(canvas.height * 0.44);   // starting y inside 640x360
-const STRIP_H = Math.round(canvas.height * 0.14);     // height of strip
+/* Config */
+const STRIP_TOP = Math.round(canvas.height * 0.44);   // inside 360x200 -> around 88
+const STRIP_H = Math.round(canvas.height * 0.14);     // around 28
 const BINS = 20;
-const MIN_VALID_BINS = 16;    // require at least 16 bins valid
-const COLOR_DIST_THRESHOLD = 100; // lower = stricter
+const MIN_VALID_BINS = 16;
+const COLOR_DIST_THRESHOLD = 100;
 
-/* representative colors (tuned) */
-const C_D = {r:15,g:110,b:245};   // dragon - blue
-const C_T = {r:245,g:110,b:20};   // tiger - orange
-const C_X = {r:135,g:206,b:235};  // tie - sky
+/* Representative colors */
+const C_D = {r:15,g:110,b:245}; // dragon
+const C_T = {r:245,g:110,b:20}; // tiger
+const C_X = {r:135,g:206,b:235}; // tie
 
 let stream = null;
 let frozen = false;
-let worker = null; // tesseract worker if needed
 
-/* helpers */
-function showPopup(msg, cls='dragon'){
+/* Helpers */
+function showPopup(text, cls='dragon'){
   popup.className = 'popup ' + cls + ' show';
-  popup.textContent = msg;
-  setTimeout(()=> popup.className='popup', 3000);
+  popup.textContent = text;
+  setTimeout(()=> { popup.className = 'popup'; }, 3000);
 }
 function colorDist(r,g,b,c){ const dr=r-c.r, dg=g-c.g, db=b-c.b; return Math.sqrt(dr*dr+dg*dg+db*db); }
 function stopStream(s){ try{ if(!s) return; s.getTracks().forEach(t=>t.stop()); }catch(e){} }
 
-/* initialize Tesseract worker lazily */
-async function ensureWorker(){
-  if(worker) return worker;
-  try{
-    worker = Tesseract.createWorker({ logger: m => console.log('Tess:', m) });
-    await worker.load();
-    await worker.loadLanguage('eng');
-    await worker.initialize('eng');
-    return worker;
-  }catch(e){
-    console.warn('Tesseract load failed', e);
-    worker = null;
-    return null;
-  }
-}
-
-/* Mobile camera start */
+/* Start camera */
 startBtn.onclick = async () => {
   if(stream) return;
   try{
@@ -176,6 +137,7 @@ startBtn.onclick = async () => {
     window._dt_stream = stream;
     video.srcObject = stream;
     statusEl.textContent = 'Status: Camera started';
+    // ensure video keeps fixed visual size (CSS object-fit handles it)
   }catch(err){
     console.error(err);
     showPopup('Camera error','error');
@@ -191,11 +153,10 @@ stopBtn.onclick = () => {
   statusEl.textContent = 'Status: Stopped';
 };
 
-/* Capture: draw video into fixed canvas 640x360 (simple center-crop cover) */
+/* Capture into fixed 360x200 canvas (center-cover) */
 captureBtn.onclick = () => {
-  if(!stream){ showPopup('Start camera first','error'); return; }
-  // compute cover cropping to fill 640x360
-  const vw = video.videoWidth || 640, vh = video.videoHeight || 360;
+  if(!stream){ showPopup('Start camera first', 'error'); return; }
+  const vw = video.videoWidth || 360, vh = video.videoHeight || 200;
   const cw = canvas.width, ch = canvas.height;
   const vRatio = vw/vh, cRatio = cw/ch;
   let sx=0, sy=0, sw=vw, sh=vh;
@@ -206,120 +167,69 @@ captureBtn.onclick = () => {
     sh = Math.floor(vw / cRatio);
     sy = Math.floor((vh - sh)/2);
   }
-  try{
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-  }catch(e){
-    console.error(e);
-  }
+  try{ ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch); }
+  catch(e){ console.error('drawImage error', e); }
   video.style.display = 'none';
   canvas.style.display = 'block';
   frozen = true;
-  statusEl.textContent = 'Status: Captured (frozen)';
+  statusEl.textContent = 'Status: Captured';
 };
 
-/* Analyse: strict bin sampling + OCR fallback */
-analyseBtn.onclick = async () => {
-  if(!frozen){ showPopup('Please capture first','error'); return; }
+/* Analyse: strict bin sampling (color-based), no randomness */
+analyseBtn.onclick = () => {
+  if(!frozen){ showPopup('Please capture first', 'error'); return; }
 
   try{
-    // get strip pixels
     const strip = ctx.getImageData(0, STRIP_TOP, canvas.width, STRIP_H);
     const binW = Math.floor(strip.width / BINS);
-    const sequence = []; // 'D','T','X' or null
+    const sequence = [];
     let validBins = 0;
-
-    // small temporary canvas for OCR cropping if needed
-    const temp = document.createElement('canvas');
-    const tw = Math.max(24, Math.floor(binW * 0.6));
-    const th = Math.max(18, Math.floor(STRIP_H * 0.6));
-    temp.width = tw; temp.height = th;
-    const tctx = temp.getContext('2d');
 
     for(let i=0;i<BINS;i++){
       const cx = Math.floor(i*binW + binW/2);
       const cy = Math.floor(strip.height/2);
-      const idx = (cy * strip.width + cx) * 4;
-      const r = strip.data[idx], g = strip.data[idx+1], b = strip.data[idx+2];
-
-      // color-distance quick test
-      const dD = colorDist(r,g,b,C_D);
-      const dT = colorDist(r,g,b,C_T);
-      const dX = colorDist(r,g,b,C_X);
+      // sample a small box around center (3x3 or scaled) to average color
+      let rSum=0,gSum=0,bSum=0,cnt=0;
+      const sample = Math.max(2, Math.floor(binW * 0.35));
+      for(let yy=-1; yy<=1; yy++){
+        for(let xx=-1; xx<=1; xx++){
+          const sx = Math.min(strip.width-1, Math.max(0, cx + xx));
+          const sy = Math.min(strip.height-1, Math.max(0, cy + yy));
+          const idx = (sy * strip.width + sx) * 4;
+          rSum += strip.data[idx]; gSum += strip.data[idx+1]; bSum += strip.data[idx+2];
+          cnt++;
+        }
+      }
+      if(cnt===0){ sequence.push(null); continue; }
+      const rAvg = rSum / cnt, gAvg = gSum / cnt, bAvg = bSum / cnt;
+      const dD = colorDist(rAvg,gAvg,bAvg,C_D);
+      const dT = colorDist(rAvg,gAvg,bAvg,C_T);
+      const dX = colorDist(rAvg,gAvg,bAvg,C_X);
       const min = Math.min(dD,dT,dX);
 
-      if(min <= COLOR_DIST_THRESHOLD){
-        // close to a representative color -> accept
-        if(min === dD) { sequence.push('D'); validBins++; continue; }
-        if(min === dT) { sequence.push('T'); validBins++; continue; }
-        sequence.push('X'); validBins++; continue;
-      }
-
-      // ambiguous: fallback OCR on center sample of this bin
-      // copy pixels from strip into temp canvas
-      const sx = Math.max(0, cx - Math.floor(tw/2));
-      const sy = Math.max(0, Math.floor((strip.height - th)/2));
-      // build imageData for temp
-      const tmpImg = tctx.createImageData(tw, th);
-      for(let yy=0; yy<th; yy++){
-        for(let xx=0; xx<tw; xx++){
-          const srcX = Math.min(strip.width-1, sx + xx);
-          const srcY = Math.min(strip.height-1, sy + yy);
-          const sidx = (srcY * strip.width + srcX) * 4;
-          const tidx = (yy * tw + xx) * 4;
-          tmpImg.data[tidx]   = strip.data[sidx];
-          tmpImg.data[tidx+1] = strip.data[sidx+1];
-          tmpImg.data[tidx+2] = strip.data[sidx+2];
-          tmpImg.data[tidx+3] = 255;
-        }
-      }
-      tctx.putImageData(tmpImg, 0, 0);
-
-      // Try OCR (letters like D, T, X) - do not block UI too long
-      let ocrChar = null;
-      try{
-        const wrk = await ensureWorker();
-        if(wrk){
-          const { data: { text } } = await wrk.recognize(temp);
-          const cleaned = (text || '').toUpperCase().replace(/[^A-Z0-9]/g,'').trim();
-          if(cleaned.length){
-            // look for D/T/X in recognized text
-            if(cleaned.includes('D')) ocrChar = 'D';
-            else if(cleaned.includes('T')) ocrChar = 'T';
-            else if(cleaned.includes('X')) ocrChar = 'X';
-          }
-        }
-      }catch(e){
-        console.warn('OCR failed for bin', i, e);
-        ocrChar = null;
-      }
-
-      if(ocrChar){
-        sequence.push(ocrChar);
-        validBins++;
-      } else {
+      if(min > COLOR_DIST_THRESHOLD){
         sequence.push(null);
+        continue;
       }
-    } // end bins
+      if(min === dD){ sequence.push('D'); validBins++; }
+      else if(min === dT){ sequence.push('T'); validBins++; }
+      else { sequence.push('X'); validBins++; }
+    }
 
-    // validate overall capture
     if(validBins < MIN_VALID_BINS){
-      showPopup('Invalid capture!','error');
-      // clear freeze after short delay
+      showPopup('Invalid capture!', 'error');
       setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Align and try again'; }, 700);
       return;
     }
 
-    // build compact sequence (drop nulls)
     const compact = sequence.filter(x=>x!==null);
-
-    // enforce at least some length
     if(compact.length < MIN_VALID_BINS){
-      showPopup('Invalid capture!','error');
+      showPopup('Invalid capture!', 'error');
       setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Align and try again'; }, 700);
       return;
     }
 
-    // PATTERN ENGINE (strict rules, no randomness)
+    // Pattern engine (strict)
     const last6 = compact.slice(-6).join('');
     let result = 'Next: Dragon';
     let cls = 'dragon';
@@ -333,15 +243,13 @@ analyseBtn.onclick = async () => {
     } else if(/(TD){3,}$/.test(last6)){
       result = 'Next: Tiger'; cls='tiger';
     } else if(last6.includes('X')){
-      // if tie appears, choose previous non-X
       let prev = null;
       for(let i=compact.length-1;i>=0;i--){ if(compact[i]==='D'||compact[i]==='T'){ prev=compact[i]; break; } }
       if(prev==='D'){ result='Next: Dragon + Tie'; cls='tie'; }
       else if(prev==='T'){ result='Next: Tiger + Tie'; cls='tie'; }
       else { result='Next: Dragon'; cls='dragon'; }
     } else {
-      // fallback: look at alternation in last two
-      if(last6.length >= 2 && last6[last6.length-1] !== last6[last6.length-2]){
+      if(last6.length >=2 && last6[last6.length-1] !== last6[last6.length-2]){
         result = last6[last6.length-1] === 'D' ? 'Next: Tiger' : 'Next: Dragon';
         cls = result.includes('Dragon') ? 'dragon' : 'tiger';
       } else {
@@ -351,47 +259,24 @@ analyseBtn.onclick = async () => {
       }
     }
 
-    // show final result (short)
     showPopup(result, cls);
+    setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Idle'; }, 3000);
 
-    // cleanup: hide canvas and resume preview after 3s
-    setTimeout(()=>{
-      canvas.style.display='none';
-      video.style.display='block';
-      frozen = false;
-      statusEl.textContent = 'Status: Idle';
-    }, 3000);
-
-  }catch(err){
-    console.error('Analyse error', err);
-    showPopup('Analysis error','error');
-    setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Idle'; }, 800);
+  }catch(e){
+    console.error(e);
+    showPopup('Analysis error', 'error');
+    setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Idle'; }, 700);
   }
 };
 
-/* restart: stop and reload */
+/* Restart - stop stream and reload */
 restartBtn.onclick = () => {
   if(stream) stopStream(stream);
   location.reload();
 };
 
-/* ensure worker cleanup on page unload */
-window.addEventListener('beforeunload', async ()=> {
-  try{ if(worker){ await worker.terminate(); worker=null; } }catch(e){}
-});
-
-/* helper: lazy load worker if OCR needed (defined above) */
-async function ensureWorker(){ return await window.ensureWorkerInternal?.() }
-
-/* define ensureWorkerInternal used above if Tesseract exists */
-window.ensureWorkerInternal = async function(){
-  if(window._dt_tess_worker) return window._dt_tess_worker;
-  if(typeof Tesseract === 'undefined') return null;
-  const w = Tesseract.createWorker();
-  window._dt_tess_worker = w;
-  try{ await w.load(); await w.loadLanguage('eng'); await w.initialize('eng'); return w; }
-  catch(e){ console.warn('Tess init failed', e); return null; }
-};
+/* cleanup */
+window.addEventListener('beforeunload', ()=>{ if(stream) stopStream(stream); });
 
 </script>
 </body>
