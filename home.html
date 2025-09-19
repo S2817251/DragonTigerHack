@@ -29,7 +29,12 @@
     .header img { width: 40px; height: 40px; }
     .header h1 { font-size: 20px; margin: 0; }
 
-    /* Capture box */
+    /* Video wrapper with overlay box */
+    .video-wrapper {
+      position: relative;
+      width: 360px;
+      height: 200px;
+    }
     #video, #canvas {
       width: 360px;
       height: 200px;
@@ -37,6 +42,18 @@
       border-radius: 12px;
       object-fit: cover;
       background: #000;
+    }
+    /* Kinw box */
+    .overlay-box {
+      position: absolute;
+      top: 30%;
+      left: 10%;
+      width: 80%;
+      height: 40%;
+      border: 2px dashed #22c55e;
+      border-radius: 8px;
+      pointer-events: none;
+      box-shadow: 0 0 8px rgba(34,197,94,0.8);
     }
 
     /* Controls */
@@ -66,14 +83,16 @@
     /* Popup */
     #popup {
       position: fixed;
-      top: 20px;
+      top: 20%;
       left: 50%;
       transform: translateX(-50%);
       background: #1e293b;
       color: #fff;
-      padding: 12px 20px;
-      border-radius: 8px;
+      padding: 18px 25px;
+      border-radius: 12px;
       display: none;
+      font-size: 22px;
+      font-weight: bold;
       z-index: 9999;
     }
   </style>
@@ -86,9 +105,12 @@
     <h1>Dragon Tiger Analyser</h1>
   </div>
 
-  <!-- Video/Canvas -->
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" width="360" height="200" style="display:none;"></canvas>
+  <!-- Video with overlay box -->
+  <div class="video-wrapper">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" width="360" height="200" style="display:none;"></canvas>
+    <div class="overlay-box"></div>
+  </div>
 
   <!-- Controls -->
   <div class="controls">
@@ -118,8 +140,9 @@
 
     let stream = null;
     let analyseInterval = null;
+    let freeze = false;
 
-    // ✅ Strict mobile-only
+    // ✅ Mobile-only
     const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) && window.innerWidth < 768;
     if (!isMobile) {
       document.body.innerHTML = `
@@ -129,25 +152,32 @@
       throw new Error("Not mobile");
     }
 
-    // Popup
     function showPopup(msg) {
       popup.innerText = msg;
       popup.style.display = 'block';
       setTimeout(() => { popup.style.display = 'none'; }, 3000);
     }
 
-    // Analyse one frame
     function analyseFrame() {
+      if (freeze) return;
+
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imgData = ctx.getImageData(0, canvas.height * 0.3, canvas.width, canvas.height * 0.2);
+
+      // Crop only inside kinw box (same size as overlay)
+      const x = canvas.width * 0.1;
+      const y = canvas.height * 0.3;
+      const w = canvas.width * 0.8;
+      const h = canvas.height * 0.4;
+      const imgData = ctx.getImageData(x, y, w, h);
+
       const bins = [];
       const step = Math.floor(imgData.width / 20);
 
       for (let i = 0; i < 20; i++) {
         let r = 0, g = 0, b = 0, count = 0;
-        for (let x = i * step; x < (i + 1) * step; x++) {
-          for (let y = 0; y < imgData.height; y++) {
-            const idx = (y * imgData.width + x) * 4;
+        for (let px = i * step; px < (i + 1) * step; px++) {
+          for (let py = 0; py < imgData.height; py++) {
+            const idx = (py * imgData.width + px) * 4;
             r += imgData.data[idx];
             g += imgData.data[idx + 1];
             b += imgData.data[idx + 2];
@@ -165,9 +195,9 @@
       }
 
       const valid = bins.filter(v => v);
-      if (valid.length < 12) { showPopup("Error: History not clear"); return; }
+      if (valid.length < 12) return;
 
-      // Pattern analysis
+      // Analyse
       let result = "Error";
       const last = valid[valid.length - 1];
       const streak = valid.slice(-3);
@@ -179,31 +209,34 @@
         result = (prev === "Dragon") ? "Tie with Dragon" : "Tie with Tiger";
       } else result = (last === "Dragon") ? "Tiger" : "Dragon";
 
+      // Freeze screen
+      freeze = true;
+      video.pause();
       showPopup("Result: " + result);
+
+      setTimeout(() => {
+        video.play();
+        freeze = false;
+      }, 3000);
     }
 
-    // Start camera
     startBtn.onclick = async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         video.srcObject = stream;
 
-        // Auto analyse every 4 sec
-        analyseInterval = setInterval(analyseFrame, 4000);
-
+        analyseInterval = setInterval(analyseFrame, 2000); // check every 2 sec
       } catch {
         showPopup("Camera error!");
       }
     };
 
-    // Stop camera
     stopBtn.onclick = () => {
       if (stream) stream.getTracks().forEach(track => track.stop());
       video.srcObject = null;
       clearInterval(analyseInterval);
     };
 
-    // Restart
     restartBtn.onclick = () => { location.reload(); };
   </script>
 </body>
