@@ -199,17 +199,20 @@
         else if (r > 150 && g > 150 && b < 200) tie++; // light = tie
       }
 
-      if (dragon + tiger + tie < 10) {
+      const totalPixels = imageData.data.length / 4;
+      const validPixels = dragon + tiger + tie;
+
+      // Strict validation: at least 5% of pixels must be valid
+      if (validPixels < totalPixels * 0.05) {
         showPopup("No valid history detected");
         return;
       }
 
       let result = "";
       if (tie > 0) {
-        if (dragon >= tiger) result = "Dragon";
-        else result = "Tiger";
+        result = (dragon >= tiger) ? "Dragon" : "Tiger";
       } else {
-        result = dragon > tiger ? "Dragon" : "Tiger";
+        result = (dragon > tiger) ? "Dragon" : "Tiger";
       }
 
       showPopup("Result: " + result);
