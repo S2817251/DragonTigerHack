@@ -3,224 +3,396 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>DragonTiger Analyzer — Mobile Only (Strict)</title>
+<title>DragonTiger Analyzer — Final</title>
+
+<!-- Tesseract.js (OCR fallback) -->
+<script src="https://unpkg.com/tesseract.js@2.1.5/dist/tesseract.min.js"></script>
+
 <style>
-  body{margin:0;font-family:Inter,Arial,sans-serif;background:#071225;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh}
-  .msg{max-width:720px;padding:24px;border-radius:12px;background:linear-gradient(180deg,#081226,#071427);text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
-  .big{font-size:20px;font-weight:700;margin-bottom:8px}
-  .small{font-size:14px;opacity:0.85;margin-bottom:12px}
-  .btn{display:inline-block;padding:10px 14px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700}
-  /* The full app styles (only used on mobile branch, safe to keep) */
-  .app{display:none}
+  :root{--bg:#071225;--card:#0b1220;--accent:#2563eb}
+  *{box-sizing:border-box;font-family:Inter,Arial,sans-serif}
+  body{margin:0;background:var(--bg);color:#fff;display:flex;justify-content:center;padding:14px;}
+  .wrap{width:100%;max-width:480px}
+  .card{background:linear-gradient(180deg,#081226,#071427);border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.03)}
+  header{display:flex;align-items:center;gap:12px}
+  .logo{width:44px;height:44px;border-radius:10px;object-fit:cover}
+  h1{margin:0;font-size:18px}
+  p.sub{margin:0;font-size:12px;opacity:.7}
+  .camera{position:relative}
+  video, canvas{width:100%;border-radius:10px;background:#000;display:block}
+  /* guide strip (visual only) */
+  .guide{position:absolute;left:6%;right:6%;top:46%;height:12%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);pointer-events:none}
+  /* buttons */
+  .buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .btn{flex:1 1 calc(50% - 10px);padding:12px;border-radius:10px;border:none;font-weight:800;cursor:pointer;color:#fff}
+  .btn.primary{background:linear-gradient(135deg,#2563eb,#1e40af)}
+  .btn.ghost{background:#334155}
+  .restart{background:linear-gradient(135deg,#ef4444,#b91c1c);width:60%;margin:12px auto;display:block}
+  .links{display:flex;gap:10px;margin-top:10px}
+  .linkBtn{flex:1;text-decoration:none;text-align:center;padding:12px;border-radius:10px;background:linear-gradient(135deg,#2563eb,#1e40af);color:#fff;font-weight:800}
+  /* popup */
+  .popup{position:fixed;top:18px;left:50%;transform:translateX(-50%);padding:12px 18px;border-radius:10px;font-weight:900;color:#fff;display:none;z-index:999}
+  .popup.show{display:block;animation:popupAnim .28s ease}
+  @keyframes popupAnim{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
+  .dragon{background:#2563eb} .tiger{background:#f97316} .tie{background:#0ea5e9} .error{background:#475569}
+  .status{font-size:13px;opacity:.8;text-align:center;margin-top:8px}
+  @media(min-width:700px){ .wrap{max-width:640px} }
 </style>
 </head>
 <body>
-  <!-- This message will show for non-mobile devices -->
-  <div id="desktopMessage" class="msg" role="dialog" aria-live="polite" style="display:none">
-    <div class="big">Please open on a mobile device</div>
-    <div class="small">This analyzer only works on mobile. For your privacy and to prevent accidental webcam capture, camera access is disabled on desktops/laptops.</div>
-    <div><a class="btn" href="javascript:location.reload()">Check again</a></div>
-    <div style="margin-top:12px;font-size:12px;opacity:0.8">If you previously allowed camera for this site, revoke permission from your browser settings (instructions below).</div>
-  </div>
+<div class="wrap">
 
-  <!-- Full app (rendered only on mobile) -->
-  <div id="app" class="app" style="width:100%;max-width:480px;padding:16px">
-    <!-- Keep your app markup here (logo, video, canvas, buttons). Kept minimal and safe. -->
-    <div style="background:#0b1220;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
-      <img src="logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;object-fit:cover">
+  <!-- Header -->
+  <div class="card">
+    <header>
+      <img src="logo.png" alt="logo" class="logo">
       <div>
-        <div style="font-weight:800">DragonTiger Analyzer</div>
-        <div style="font-size:12px;opacity:0.8">Mobile only — capture history strip</div>
+        <h1>DragonTiger Analyzer</h1>
+        <p class="sub">Mobile only — capture history strip (fixed)</p>
       </div>
+      <div style="margin-left:auto;font-size:12px;opacity:.7">v2.0</div>
+    </header>
+  </div>
+
+  <!-- Camera Area -->
+  <div class="card camera">
+    <!-- video preview shown; canvas used for fixed capture 640x360 -->
+    <video id="video" autoplay playsinline muted></video>
+    <canvas id="canvas" width="640" height="360" style="display:none"></canvas>
+    <div class="guide" aria-hidden="true"></div>
+
+    <div class="buttons">
+      <button id="startBtn" class="btn primary">Start Camera</button>
+      <button id="stopBtn" class="btn ghost">Stop Camera</button>
+      <button id="captureBtn" class="btn primary">Capture</button>
+      <button id="analyseBtn" class="btn primary">Analyse</button>
     </div>
 
-    <div style="background:#0b1220;padding:12px;border-radius:12px;margin-bottom:12px;position:relative">
-      <video id="video" playsinline autoplay muted style="width:100%;border-radius:10px;background:#000"></video>
-      <canvas id="canvas" width="1260" height="708" style="display:none"></canvas>
-      <div style="position:absolute;left:6%;right:6%;top:46%;height:12%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);pointer-events:none"></div>
-    </div>
+    <button id="restartBtn" class="restart">Restart</button>
+    <div class="status" id="status">Status: Idle</div>
+  </div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-      <button id="startBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#2563eb;color:#fff;font-weight:700">Start Camera</button>
-      <button id="stopBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#334155;color:#fff;font-weight:700">Stop Camera</button>
-      <button id="captureBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#4f46e5;color:#fff;font-weight:700">Capture</button>
-      <button id="analyseBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#7c3aed;color:#fff;font-weight:700">Analyse</button>
-    </div>
-
-    <button id="restartBtn" style="width:60%;display:block;margin:8px auto;padding:10px;border-radius:10px;border:none;background:#dc2626;color:#fff;font-weight:800">Restart</button>
-
-    <div style="display:flex;gap:10px;margin-top:12px">
-      <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank" style="flex:1;background:#2563eb;padding:12px;border-radius:10px;text-decoration:none;color:#fff;font-weight:700;text-align:center">Game Link</a>
-      <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank" style="flex:1;background:#2563eb;padding:12px;border-radius:10px;text-decoration:none;color:#fff;font-weight:700;text-align:center">Channel Link</a>
+  <!-- Links -->
+  <div class="card">
+    <div class="links">
+      <a class="linkBtn" href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank" rel="noopener">Game Link</a>
+      <a class="linkBtn" href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank" rel="noopener">Channel Link</a>
     </div>
   </div>
+
+</div>
+
+<!-- Popup -->
+<div id="popup" class="popup"></div>
 
 <script>
-/* STRICT MOBILE-ONLY BOOTSTRAP
-   - If not mobile OR viewport >= 768, show desktopMessage and DO NOT run camera code.
-   - Otherwise initialize the mobile app.
-   - Also provide a safe stop to immediately kill streams if they exist.
+/*
+Final strict client-side analyzer:
+- Mobile-only guard: userAgent + viewport < 768.
+- Fixed internal capture canvas: 640x360.
+- Analyze only fixed horizontal strip inside canvas (config STRIP_TOP/HEIGHT).
+- Divide strip into 20 bins; color detect each bin; fallback OCR per-bin if color ambiguous.
+- Require MIN_VALID_BINS (>=16). If not, Invalid capture.
+- Pattern-based decision (no randomness).
+- Popup shows short result (Next: ...), 3s.
+- No images uploaded anywhere (client-side only).
 */
 
-const isUserAgentMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const isUA = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 const isViewportMobile = window.innerWidth < 768;
-const isMobile = isUserAgentMobile && isViewportMobile;
+const isMobile = isUA && isViewportMobile;
 
-// Utility to stop any stream immediately
-function stopStreamIfAny(stream){
-  try{
-    if(!stream) return;
-    stream.getTracks().forEach(t=>{
-      try{ t.stop(); }catch(e){}
-    });
-  }catch(e){}
-}
-
-// If not mobile -> show message and prevent camera code from running
 if(!isMobile){
-  // remove any accidental existing streams (defensive)
-  try{
-    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia == null){
-      // nothing
-    }
-  }catch(e){}
-  document.getElementById('desktopMessage').style.display='block';
-  // ensure app not visible
-  document.getElementById('app').style.display='none';
-  // Also proactively stop any stream that might be active (best-effort)
-  // Note: If user previously granted permission and a stream is active from prior code, we try to stop it.
-  if(window._dt_stream){
-    stopStreamIfAny(window._dt_stream);
-    window._dt_stream = null;
-  }
-  // Do not run any other code
-} else {
-  // Mobile branch: initialize app
-  document.getElementById('desktopMessage').style.display='none';
-  document.getElementById('app').style.display='block';
-
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('canvas');
-  const ctx = canvas.getContext('2d');
-  const startBtn = document.getElementById('startBtn');
-  const stopBtn = document.getElementById('stopBtn');
-  const captureBtn = document.getElementById('captureBtn');
-  const analyseBtn = document.getElementById('analyseBtn');
-  const restartBtn = document.getElementById('restartBtn');
-
-  let stream = null;
-  let frozen = false;
-
-  // Safety: expose for external stop if needed
-  window._dt_stream = null;
-
-  function showPopup(msg){
-    // simple native fallback: use alert for clarity (keeps UI minimal)
-    // but avoid annoying alerts: instead console.log + optional visual
-    console.log('POPUP:', msg);
-  }
-
-  startBtn.onclick = async ()=>{
-    try{
-      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-      window._dt_stream = stream;
-      video.srcObject = stream;
-      video.play().catch(()=>{});
-    }catch(err){
-      console.error(err);
-      showPopup('Camera access denied or error.');
-    }
-  };
-
-  stopBtn.onclick = ()=>{
-    if(stream){ stopStreamIfAny(stream); stream = null; window._dt_stream = null; }
-    video.srcObject = null;
-  };
-
-  captureBtn.onclick = ()=>{
-    if(!stream){ showPopup('Start camera first'); return; }
-    // Capture into fixed logical canvas 1260x708 with cover cropping
-    const vw = video.videoWidth || 1260, vh = video.videoHeight || 708;
-    const cw = canvas.width, ch = canvas.height;
-    const videoRatio = vw/vh, canvasRatio = cw/ch;
-    let sx=0, sy=0, sw=vw, sh=vh;
-    if(videoRatio > canvasRatio){ sw = Math.floor(vh * canvasRatio); sx = Math.floor((vw - sw)/2); }
-    else { sh = Math.floor(vw / canvasRatio); sy = Math.floor((vh - sh)/2); }
-    try{
-      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-    }catch(e){
-      console.error(e);
-    }
-    // freeze visual: hide video, show canvas
-    video.style.display = 'none';
-    canvas.style.display = 'block';
-    frozen = true;
-  };
-
-  analyseBtn.onclick = ()=>{
-    if(!frozen){ showPopup('Please capture first'); return; }
-    // Strict analysis: sample fixed strip (y-based)
-    try{
-      const STRIP_TOP = Math.round(708 * 0.46);
-      const STRIP_H = Math.round(708 * 0.12);
-      const strip = ctx.getImageData(0, STRIP_TOP, canvas.width, STRIP_H);
-      // divide into 20 bins, sample center pixel of each bin; require >= 15 valid bins
-      const BINS = 20, MIN_VALID = 15;
-      const binW = Math.floor(strip.width / BINS);
-      let seq = [], valid = 0;
-      for(let i=0;i<BINS;i++){
-        const cx = Math.floor(i*binW + binW/2);
-        const cy = Math.floor(strip.height/2);
-        const idx = (cy * strip.width + cx) * 4;
-        const r = strip.data[idx], g = strip.data[idx+1], b = strip.data[idx+2];
-        // simple strict color tests
-        if(b > 150 && r < 110 && g < 140){ seq.push('D'); valid++; }
-        else if(r > 150 && g < 140 && b < 120){ seq.push('T'); valid++; }
-        else if(b > 160 && g > 160){ seq.push('X'); valid++; }
-        else seq.push(null);
-      }
-      if(valid < MIN_VALID){
-        showPopup('Invalid capture!');
-        // clear freeze and resume preview
-        setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 600);
-        return;
-      }
-      // compact sequence (only non-null)
-      const compact = seq.filter(x=>x!==null);
-      // pattern engine (simple rules)
-      const last = compact.slice(-6).join('');
-      let result = 'Next: Dragon';
-      if(/D{3,}$/.test(last)) result = 'Next: Tiger';
-      else if(/T{3,}$/.test(last)) result = 'Next: Dragon';
-      else if(last.includes('X')){
-        // prefer previous non-X if exists
-        let prev = null;
-        for(let i = compact.length-1; i>=0; i--){ if(compact[i]==='D'||compact[i]==='T'){ prev = compact[i]; break; } }
-        if(prev==='D') result='Next: Dragon + Tie'; else if(prev==='T') result='Next: Tiger + Tie';
-      } else {
-        // alternate heuristic
-        if(last.length>=2 && last[last.length-1] !== last[last.length-2]) result = last[last.length-1]==='D' ? 'Next: Tiger' : 'Next: Dragon';
-        else result = compact[compact.length-1]==='D' ? 'Next: Tiger' : 'Next: Dragon';
-      }
-
-      // show result (console + basic on-screen message)
-      alert(result); // simple strong visible indicator on mobile
-      // cleanup: resume after 3s
-      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 3000);
-    }catch(err){
-      console.error(err);
-      showPopup('Analysis error');
-      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 600);
-    }
-  };
-
-  restartBtn.onclick = ()=>{
-    // stop stream if any and reload
-    if(stream){ stopStreamIfAny(stream); stream=null; window._dt_stream=null; }
-    location.reload();
-  };
+  // Replace page with clear message and stop further execution
+  document.body.innerHTML = `
+    <div style="height:100vh;display:flex;align-items:center;justify-content:center;background:${getComputedStyle(document.body).background}">
+      <div style="max-width:700px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#081226,#071427);text-align:center;color:#fff">
+        <div style="font-weight:800;font-size:20px;margin-bottom:8px">Please open on mobile device</div>
+        <div style="opacity:.85;margin-bottom:12px">This analyzer runs only on mobile. Camera access on desktop/laptop is disabled for privacy.</div>
+        <div><button onclick="location.reload()" style="padding:10px 14px;border-radius:8px;border:none;background:#2563eb;color:#fff;font-weight:800">Check again</button></div>
+      </div>
+    </div>`;
+  throw new Error('Not mobile');
 }
-</script>
 
+/* DOM elements */
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas'); // fixed 640x360
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('startBtn');
+const stopBtn = document.getElementById('stopBtn');
+const captureBtn = document.getElementById('captureBtn');
+const analyseBtn = document.getElementById('analyseBtn');
+const restartBtn = document.getElementById('restartBtn');
+const popup = document.getElementById('popup');
+const statusEl = document.getElementById('status');
+
+/* CONFIG - tweak if required */
+const STRIP_TOP = Math.round(canvas.height * 0.44);   // starting y inside 640x360
+const STRIP_H = Math.round(canvas.height * 0.14);     // height of strip
+const BINS = 20;
+const MIN_VALID_BINS = 16;    // require at least 16 bins valid
+const COLOR_DIST_THRESHOLD = 100; // lower = stricter
+
+/* representative colors (tuned) */
+const C_D = {r:15,g:110,b:245};   // dragon - blue
+const C_T = {r:245,g:110,b:20};   // tiger - orange
+const C_X = {r:135,g:206,b:235};  // tie - sky
+
+let stream = null;
+let frozen = false;
+let worker = null; // tesseract worker if needed
+
+/* helpers */
+function showPopup(msg, cls='dragon'){
+  popup.className = 'popup ' + cls + ' show';
+  popup.textContent = msg;
+  setTimeout(()=> popup.className='popup', 3000);
+}
+function colorDist(r,g,b,c){ const dr=r-c.r, dg=g-c.g, db=b-c.b; return Math.sqrt(dr*dr+dg*dg+db*db); }
+function stopStream(s){ try{ if(!s) return; s.getTracks().forEach(t=>t.stop()); }catch(e){} }
+
+/* initialize Tesseract worker lazily */
+async function ensureWorker(){
+  if(worker) return worker;
+  try{
+    worker = Tesseract.createWorker({ logger: m => console.log('Tess:', m) });
+    await worker.load();
+    await worker.loadLanguage('eng');
+    await worker.initialize('eng');
+    return worker;
+  }catch(e){
+    console.warn('Tesseract load failed', e);
+    worker = null;
+    return null;
+  }
+}
+
+/* Mobile camera start */
+startBtn.onclick = async () => {
+  if(stream) return;
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    window._dt_stream = stream;
+    video.srcObject = stream;
+    statusEl.textContent = 'Status: Camera started';
+  }catch(err){
+    console.error(err);
+    showPopup('Camera error','error');
+    statusEl.textContent = 'Status: Camera error';
+  }
+};
+
+/* Stop camera */
+stopBtn.onclick = () => {
+  stopStream(stream);
+  stream = null;
+  video.srcObject = null;
+  statusEl.textContent = 'Status: Stopped';
+};
+
+/* Capture: draw video into fixed canvas 640x360 (simple center-crop cover) */
+captureBtn.onclick = () => {
+  if(!stream){ showPopup('Start camera first','error'); return; }
+  // compute cover cropping to fill 640x360
+  const vw = video.videoWidth || 640, vh = video.videoHeight || 360;
+  const cw = canvas.width, ch = canvas.height;
+  const vRatio = vw/vh, cRatio = cw/ch;
+  let sx=0, sy=0, sw=vw, sh=vh;
+  if(vRatio > cRatio){
+    sw = Math.floor(vh * cRatio);
+    sx = Math.floor((vw - sw)/2);
+  } else {
+    sh = Math.floor(vw / cRatio);
+    sy = Math.floor((vh - sh)/2);
+  }
+  try{
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+  }catch(e){
+    console.error(e);
+  }
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  frozen = true;
+  statusEl.textContent = 'Status: Captured (frozen)';
+};
+
+/* Analyse: strict bin sampling + OCR fallback */
+analyseBtn.onclick = async () => {
+  if(!frozen){ showPopup('Please capture first','error'); return; }
+
+  try{
+    // get strip pixels
+    const strip = ctx.getImageData(0, STRIP_TOP, canvas.width, STRIP_H);
+    const binW = Math.floor(strip.width / BINS);
+    const sequence = []; // 'D','T','X' or null
+    let validBins = 0;
+
+    // small temporary canvas for OCR cropping if needed
+    const temp = document.createElement('canvas');
+    const tw = Math.max(24, Math.floor(binW * 0.6));
+    const th = Math.max(18, Math.floor(STRIP_H * 0.6));
+    temp.width = tw; temp.height = th;
+    const tctx = temp.getContext('2d');
+
+    for(let i=0;i<BINS;i++){
+      const cx = Math.floor(i*binW + binW/2);
+      const cy = Math.floor(strip.height/2);
+      const idx = (cy * strip.width + cx) * 4;
+      const r = strip.data[idx], g = strip.data[idx+1], b = strip.data[idx+2];
+
+      // color-distance quick test
+      const dD = colorDist(r,g,b,C_D);
+      const dT = colorDist(r,g,b,C_T);
+      const dX = colorDist(r,g,b,C_X);
+      const min = Math.min(dD,dT,dX);
+
+      if(min <= COLOR_DIST_THRESHOLD){
+        // close to a representative color -> accept
+        if(min === dD) { sequence.push('D'); validBins++; continue; }
+        if(min === dT) { sequence.push('T'); validBins++; continue; }
+        sequence.push('X'); validBins++; continue;
+      }
+
+      // ambiguous: fallback OCR on center sample of this bin
+      // copy pixels from strip into temp canvas
+      const sx = Math.max(0, cx - Math.floor(tw/2));
+      const sy = Math.max(0, Math.floor((strip.height - th)/2));
+      // build imageData for temp
+      const tmpImg = tctx.createImageData(tw, th);
+      for(let yy=0; yy<th; yy++){
+        for(let xx=0; xx<tw; xx++){
+          const srcX = Math.min(strip.width-1, sx + xx);
+          const srcY = Math.min(strip.height-1, sy + yy);
+          const sidx = (srcY * strip.width + srcX) * 4;
+          const tidx = (yy * tw + xx) * 4;
+          tmpImg.data[tidx]   = strip.data[sidx];
+          tmpImg.data[tidx+1] = strip.data[sidx+1];
+          tmpImg.data[tidx+2] = strip.data[sidx+2];
+          tmpImg.data[tidx+3] = 255;
+        }
+      }
+      tctx.putImageData(tmpImg, 0, 0);
+
+      // Try OCR (letters like D, T, X) - do not block UI too long
+      let ocrChar = null;
+      try{
+        const wrk = await ensureWorker();
+        if(wrk){
+          const { data: { text } } = await wrk.recognize(temp);
+          const cleaned = (text || '').toUpperCase().replace(/[^A-Z0-9]/g,'').trim();
+          if(cleaned.length){
+            // look for D/T/X in recognized text
+            if(cleaned.includes('D')) ocrChar = 'D';
+            else if(cleaned.includes('T')) ocrChar = 'T';
+            else if(cleaned.includes('X')) ocrChar = 'X';
+          }
+        }
+      }catch(e){
+        console.warn('OCR failed for bin', i, e);
+        ocrChar = null;
+      }
+
+      if(ocrChar){
+        sequence.push(ocrChar);
+        validBins++;
+      } else {
+        sequence.push(null);
+      }
+    } // end bins
+
+    // validate overall capture
+    if(validBins < MIN_VALID_BINS){
+      showPopup('Invalid capture!','error');
+      // clear freeze after short delay
+      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Align and try again'; }, 700);
+      return;
+    }
+
+    // build compact sequence (drop nulls)
+    const compact = sequence.filter(x=>x!==null);
+
+    // enforce at least some length
+    if(compact.length < MIN_VALID_BINS){
+      showPopup('Invalid capture!','error');
+      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Align and try again'; }, 700);
+      return;
+    }
+
+    // PATTERN ENGINE (strict rules, no randomness)
+    const last6 = compact.slice(-6).join('');
+    let result = 'Next: Dragon';
+    let cls = 'dragon';
+
+    if(/D{3,}$/.test(last6)){
+      result = 'Next: Tiger'; cls='tiger';
+    } else if(/T{3,}$/.test(last6)){
+      result = 'Next: Dragon'; cls='dragon';
+    } else if(/(DT){3,}$/.test(last6)){
+      result = 'Next: Dragon'; cls='dragon';
+    } else if(/(TD){3,}$/.test(last6)){
+      result = 'Next: Tiger'; cls='tiger';
+    } else if(last6.includes('X')){
+      // if tie appears, choose previous non-X
+      let prev = null;
+      for(let i=compact.length-1;i>=0;i--){ if(compact[i]==='D'||compact[i]==='T'){ prev=compact[i]; break; } }
+      if(prev==='D'){ result='Next: Dragon + Tie'; cls='tie'; }
+      else if(prev==='T'){ result='Next: Tiger + Tie'; cls='tie'; }
+      else { result='Next: Dragon'; cls='dragon'; }
+    } else {
+      // fallback: look at alternation in last two
+      if(last6.length >= 2 && last6[last6.length-1] !== last6[last6.length-2]){
+        result = last6[last6.length-1] === 'D' ? 'Next: Tiger' : 'Next: Dragon';
+        cls = result.includes('Dragon') ? 'dragon' : 'tiger';
+      } else {
+        const last = compact[compact.length-1];
+        result = last === 'D' ? 'Next: Tiger' : 'Next: Dragon';
+        cls = result.includes('Dragon') ? 'dragon' : 'tiger';
+      }
+    }
+
+    // show final result (short)
+    showPopup(result, cls);
+
+    // cleanup: hide canvas and resume preview after 3s
+    setTimeout(()=>{
+      canvas.style.display='none';
+      video.style.display='block';
+      frozen = false;
+      statusEl.textContent = 'Status: Idle';
+    }, 3000);
+
+  }catch(err){
+    console.error('Analyse error', err);
+    showPopup('Analysis error','error');
+    setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; statusEl.textContent='Status: Idle'; }, 800);
+  }
+};
+
+/* restart: stop and reload */
+restartBtn.onclick = () => {
+  if(stream) stopStream(stream);
+  location.reload();
+};
+
+/* ensure worker cleanup on page unload */
+window.addEventListener('beforeunload', async ()=> {
+  try{ if(worker){ await worker.terminate(); worker=null; } }catch(e){}
+});
+
+/* helper: lazy load worker if OCR needed (defined above) */
+async function ensureWorker(){ return await window.ensureWorkerInternal?.() }
+
+/* define ensureWorkerInternal used above if Tesseract exists */
+window.ensureWorkerInternal = async function(){
+  if(window._dt_tess_worker) return window._dt_tess_worker;
+  if(typeof Tesseract === 'undefined') return null;
+  const w = Tesseract.createWorker();
+  window._dt_tess_worker = w;
+  try{ await w.load(); await w.loadLanguage('eng'); await w.initialize('eng'); return w; }
+  catch(e){ console.warn('Tess init failed', e); return null; }
+};
+
+</script>
 </body>
 </html>
