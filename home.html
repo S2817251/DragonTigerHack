@@ -88,16 +88,14 @@
 
   <!-- Video/Canvas -->
   <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <canvas id="canvas" width="360" height="200" style="display:none;"></canvas>
 
   <!-- Controls -->
   <div class="controls">
     <button id="startBtn">Start Camera</button>
     <button id="stopBtn">Stop Camera</button>
-    <button id="captureBtn">Capture</button>
-    <button id="analyseBtn">Analyse</button>
+    <button id="restartBtn">Restart</button>
   </div>
-  <button id="restartBtn">Restart</button>
 
   <!-- Links -->
   <div class="links">
@@ -116,12 +114,10 @@
 
     const startBtn = document.getElementById('startBtn');
     const stopBtn = document.getElementById('stopBtn');
-    const captureBtn = document.getElementById('captureBtn');
-    const analyseBtn = document.getElementById('analyseBtn');
     const restartBtn = document.getElementById('restartBtn');
 
     let stream = null;
-    let frozen = false;
+    let analyseInterval = null;
 
     // ✅ Strict mobile-only
     const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent) && window.innerWidth < 768;
@@ -140,38 +136,9 @@
       setTimeout(() => { popup.style.display = 'none'; }, 3000);
     }
 
-    // Start camera
-    startBtn.onclick = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        video.srcObject = stream;
-        video.style.display = 'block';
-        canvas.style.display = 'none';
-        frozen = false;
-      } catch {
-        showPopup("Camera error!");
-      }
-    };
-
-    // Stop camera
-    stopBtn.onclick = () => {
-      if (stream) stream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-    };
-
-    // Capture
-    captureBtn.onclick = () => {
-      if (!stream) { showPopup("Start camera first"); return; }
+    // Analyse one frame
+    function analyseFrame() {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      video.style.display = 'none';
-      canvas.style.display = 'block';
-      frozen = true;
-    };
-
-    // Analyse
-    analyseBtn.onclick = () => {
-      if (!frozen) { showPopup("Capture first"); return; }
-
       const imgData = ctx.getImageData(0, canvas.height * 0.3, canvas.width, canvas.height * 0.2);
       const bins = [];
       const step = Math.floor(imgData.width / 20);
@@ -198,7 +165,7 @@
       }
 
       const valid = bins.filter(v => v);
-      if (valid.length < 12) { showPopup("Error: Could not read history"); return; }
+      if (valid.length < 12) { showPopup("Error: History not clear"); return; }
 
       // Pattern analysis
       let result = "Error";
@@ -213,12 +180,27 @@
       } else result = (last === "Dragon") ? "Tiger" : "Dragon";
 
       showPopup("Result: " + result);
+    }
 
-      setTimeout(() => {
-        canvas.style.display = 'none';
-        video.style.display = 'block';
-        frozen = false;
-      }, 3000);
+    // Start camera
+    startBtn.onclick = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        video.srcObject = stream;
+
+        // Auto analyse every 4 sec
+        analyseInterval = setInterval(analyseFrame, 4000);
+
+      } catch {
+        showPopup("Camera error!");
+      }
+    };
+
+    // Stop camera
+    stopBtn.onclick = () => {
+      if (stream) stream.getTracks().forEach(track => track.stop());
+      video.srcObject = null;
+      clearInterval(analyseInterval);
     };
 
     // Restart
