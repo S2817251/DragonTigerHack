@@ -5,126 +5,119 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dragon 🐉 vs Tiger 🐯 Analyser</title>
 <style>
-  body {
-    background:#121212;
-    color:#fff;
-    font-family:'Segoe UI',sans-serif;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    min-height:100vh;
-    padding:20px;
-  }
+body {
+  background:#121212;
+  color:#fff;
+  font-family:'Segoe UI',sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  min-height:100vh;
+  padding:20px;
+  margin:0;
+}
 
-  /* Header */
-  .header-box {
-    background:#1e1e1e;
-    width:100%;
-    max-width:400px;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-    margin-bottom:20px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.5);
-  }
+/* Header */
+.header-box {
+  background:#1e1e1e;
+  width:100%;
+  max-width:400px;
+  padding:20px;
+  border-radius:15px;
+  text-align:center;
+  margin-bottom:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
 
-  .header-box img {
-    width:70px;
-    height:70px;
-    margin-bottom:10px;
-    object-fit:cover;
-    border-radius:50%; /* circular logo */
-  }
+.header-box img {
+  width:70px;
+  height:70px;
+  margin-bottom:10px;
+  object-fit:cover;
+  border-radius:50%;
+}
 
-  .header-box h1 {
-    font-size:20px;
-    font-weight:600;
-    color:#fff;
-  }
+.header-box h1 {
+  font-size:20px;
+  font-weight:600;
+  color:#fff;
+}
 
-  /* Camera */
-  video {
-    width:100%;
-    max-width:400px;
-    border-radius:12px;
-    border:1px solid #333;
-    margin-bottom:15px;
-  }
+/* Camera */
+video {
+  width:100%;
+  max-width:400px;
+  border-radius:12px;
+  border:1px solid #333;
+  margin-bottom:15px;
+}
 
-  /* Buttons */
-  .controls {
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    width:100%;
-    max-width:400px;
-    margin-bottom:20px;
-  }
+/* Buttons */
+.controls {
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  width:100%;
+  max-width:400px;
+  margin-bottom:20px;
+}
 
-  .controls button {
-    flex:1;
-    padding:12px;
-    border:none;
-    border-radius:10px;
-    background:#2e2e2e;
-    color:#fff;
-    font-size:16px;
-    font-weight:500;
-    cursor:pointer;
-    transition:0.2s;
-  }
+.controls button {
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:10px;
+  background:#2e2e2e;
+  color:#fff;
+  font-size:16px;
+  font-weight:500;
+  cursor:pointer;
+  transition:0.2s;
+}
 
-  .controls button:hover {
-    background:#3a3a3a;
-  }
+.controls button:hover { background:#3a3a3a; }
 
-  /* Popup */
-  .popup {
-    position:fixed;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    background:#1e1e1e;
-    padding:20px 25px;
-    border-radius:15px;
-    display:none;
-    text-align:center;
-    box-shadow:0 4px 15px rgba(0,0,0,0.7);
-    z-index:1000;
-  }
+/* Popup */
+.popup {
+  position:fixed;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  background:#1e1e1e;
+  padding:20px 25px;
+  border-radius:15px;
+  display:none;
+  text-align:center;
+  box-shadow:0 4px 15px rgba(0,0,0,0.7);
+  z-index:1000;
+}
 
-  .popup h2 {
-    font-size:20px;
-    font-weight:600;
-    color:#fff;
-  }
+.popup h2 { font-size:20px; font-weight:600; color:#fff; }
 
-  /* Links */
-  .link-box {
-    background:#1e1e1e;
-    width:100%;
-    max-width:400px;
-    padding:15px;
-    border-radius:15px;
-    display:flex;
-    justify-content:space-around;
-    box-shadow:0 2px 8px rgba(0,0,0,0.5);
-    margin-top:auto;
-  }
+/* Links */
+.link-box {
+  background:#1e1e1e;
+  width:100%;
+  max-width:400px;
+  padding:15px;
+  border-radius:15px;
+  display:flex;
+  justify-content:space-around;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5);
+  margin-top:auto;
+}
 
-  .link-box a {
-    padding:10px 15px;
-    border-radius:8px;
-    background:#2e2e2e;
-    color:#fff;
-    text-decoration:none;
-    font-weight:500;
-    transition:0.2s;
-  }
+.link-box a {
+  padding:10px 15px;
+  border-radius:8px;
+  background:#2e2e2e;
+  color:#fff;
+  text-decoration:none;
+  font-weight:500;
+  transition:0.2s;
+}
 
-  .link-box a:hover {
-    background:#3a3a3a;
-  }
+.link-box a:hover { background:#3a3a3a; }
 </style>
 </head>
 <body>
@@ -154,97 +147,90 @@
 </div>
 
 <script>
-let video = document.getElementById('camera');
+let video=document.getElementById('camera');
 let stream;
-let capturedImage;
+let capturedImageData;
 
-const startCamBtn = document.getElementById('startCam');
-const stopCamBtn = document.getElementById('stopCam');
-const captureBtn = document.getElementById('capture');
-const analyseBtn = document.getElementById('analyse');
-const restartBtn = document.getElementById('restart');
-const popup = document.getElementById('popup');
-const popupText = document.getElementById('popupText');
+const startCamBtn=document.getElementById('startCam');
+const stopCamBtn=document.getElementById('stopCam');
+const captureBtn=document.getElementById('capture');
+const analyseBtn=document.getElementById('analyse');
+const restartBtn=document.getElementById('restart');
+const popup=document.getElementById('popup');
+const popupText=document.getElementById('popupText');
 
-startCamBtn.onclick = async () => {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact:"environment" } }, audio:false });
-    video.srcObject = stream;
-  } catch(err) {
-    showPopup("Error: Camera not accessible");
-  }
+startCamBtn.onclick=async()=>{
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{exact:"environment"}},audio:false});
+    video.srcObject=stream;
+  }catch(err){ showPopup("Error: Camera not accessible"); }
 };
 
-stopCamBtn.onclick = () => {
-  if(stream){
-    stream.getTracks().forEach(track => track.stop());
-    video.srcObject = null;
-  }
+stopCamBtn.onclick=()=>{
+  if(stream){ stream.getTracks().forEach(track=>track.stop()); video.srcObject=null; }
 };
 
-captureBtn.onclick = () => {
+captureBtn.onclick=()=>{
   if(!stream){ showPopup("Error: Camera not started"); return; }
-  let canvas = document.createElement('canvas');
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-  let ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  capturedImage = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const canvas=document.createElement('canvas');
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  capturedImageData=ctx.getImageData(0,0,canvas.width,canvas.height);
   showPopup("Captured! Ready to Analyse");
 };
 
-analyseBtn.onclick = () => {
-  if(!capturedImage){ showPopup("Error: No history captured"); return; }
+analyseBtn.onclick=()=>{
+  if(!capturedImageData){ showPopup("Error: No history captured"); return; }
   showPopup("Analysing...");
-  setTimeout(() => {
-    let result = analyseDragonTiger(capturedImage);
-    showPopup(result, 3000);
-  }, 2000);
+  setTimeout(()=>{
+    const result=analyseDragonTiger(capturedImageData);
+    showPopup(result,3000);
+  },2000);
 };
 
-restartBtn.onclick = () => { location.reload(); };
+restartBtn.onclick=()=>{ location.reload(); };
 
-function showPopup(msg, duration=2000){
-  popupText.textContent = msg;
-  popup.style.display = 'block';
-  setTimeout(()=>{ popup.style.display = 'none'; }, duration);
+function showPopup(msg,duration=2000){
+  popupText.textContent=msg;
+  popup.style.display='block';
+  setTimeout(()=>{popup.style.display='none';},duration);
 }
 
 /**
- * Improved Dragon vs Tiger analyser logic
- * Analyzes capturedImage pixels in separate zones for Dragon/Tiger
- * Returns accurate "Dragon 🐉", "Tiger 🐯", or "Tie"
+ * JS-only accurate analyser:
+ * - Splits captured image into Dragon/Tiger zones
+ * - Detects icons/pixels
+ * - Shows error if no history
  */
 function analyseDragonTiger(imageData){
-  const data = imageData.data;
-  const width = imageData.width;
-  const height = imageData.height;
+  const data=imageData.data;
+  const width=imageData.width;
+  const height=imageData.height;
 
-  // Divide image into 2 vertical halves: left = Dragon, right = Tiger
   let dragonScore=0, tigerScore=0;
 
-  for(let y=0; y<height; y+=5){       // sample every 5th row
-    for(let x=0; x<width; x+=5){      // sample every 5th column
-      const i = (y*width + x)*4;
-      const r = data[i], g = data[i+1], b = data[i+2];
+  for(let y=0;y<height;y+=5){
+    for(let x=0;x<width;x+=5){
+      const i=(y*width+x)*4;
+      const r=data[i], g=data[i+1], b=data[i+2];
 
-      // Detect Dragon (mostly red icon)
-      if(x < width/2 && r>150 && g<100 && b<100) dragonScore++;
-      // Detect Tiger (mostly blue icon)
-      if(x >= width/2 && b>150 && r<100 && g<100) tigerScore++;
+      // Check for Dragon icon in left half
+      if(x<width/2 && r>150 && g<100 && b<100) dragonScore++;
+      // Check for Tiger icon in right half
+      if(x>=width/2 && b>150 && r<100 && g<100) tigerScore++;
     }
   }
 
-  const total = dragonScore + tigerScore;
+  const total=dragonScore+tigerScore;
   if(total===0) return "Error: No Dragon/Tiger history detected";
 
-  const dragonPercent = (dragonScore/total)*100;
-  const tigerPercent = (tigerScore/total)*100;
+  const dragonPercent=(dragonScore/total)*100;
+  const tigerPercent=(tigerScore/total)*100;
 
-  // Decide result based on percentage
-  if(Math.abs(dragonPercent - tigerPercent) < 10) 
-    return `Tie ${dragonPercent.toFixed(0)}% - ${tigerPercent.toFixed(0)}%`;
-  if(dragonPercent > tigerPercent) return "Dragon 🐉";
+  if(Math.abs(dragonPercent-tigerPercent)<10) return `Tie ${dragonPercent.toFixed(0)}% - ${tigerPercent.toFixed(0)}%`;
+  if(dragonPercent>tigerPercent) return "Dragon 🐉";
   return "Tiger 🐯";
 }
 </script>
