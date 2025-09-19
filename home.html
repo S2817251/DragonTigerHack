@@ -3,376 +3,224 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>DragonTiger Analyzer — Strict Mobile</title>
+<title>DragonTiger Analyzer — Mobile Only (Strict)</title>
 <style>
-  :root{--bg:#071225;--card:#0b1624;--muted:#314155}
-  *{box-sizing:border-box;font-family:Inter,system-ui,Arial;}
-  body{margin:0;background:var(--bg);color:#fff;display:flex;justify-content:center;padding:18px}
-  .wrap{width:100%;max-width:460px}
-  .card{background:linear-gradient(180deg,#081226,#071427);border-radius:12px;padding:12px;margin-bottom:12px;border:1px solid rgba(255,255,255,0.03)}
-  .header{display:flex;align-items:center;gap:12px}
-  .logo{width:46px;height:46px;border-radius:10px;object-fit:cover}
-  .title h1{margin:0;font-size:16px}
-  .title p{margin:0;font-size:12px;color:rgba(230,238,248,0.65)}
-  .camera{margin-top:12px;position:relative}
-  video, canvas{width:100%;height:auto;border-radius:10px;background:black;max-height:300px;display:block}
-  .strip-guide{position:absolute;left:6%;right:6%;top:46%;height:12%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);pointer-events:none;box-shadow:0 10px 30px rgba(2,6,23,0.5)}
-  .hint{position:absolute;left:50%;transform:translateX(-50%);bottom:10px;background:rgba(0,0,0,0.5);padding:6px 10px;border-radius:8px;font-size:13px;color:#fff;display:none}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-  button{flex:1;min-width:46%;padding:12px;border-radius:10px;border:none;font-weight:700;cursor:pointer;color:#fff}
-  button:disabled{opacity:0.45;cursor:not-allowed}
-  .start{background:linear-gradient(135deg,#3b82f6,#2563eb)}
-  .stop{background:linear-gradient(135deg,#475569,#334155)}
-  .capture{background:linear-gradient(135deg,#6366f1,#4f46e5)}
-  .analyse{background:linear-gradient(135deg,#8b5cf6,#7c3aed)}
-  .restart{background:linear-gradient(135deg,#ef4444,#dc2626);width:100%;margin-top:10px}
-  .links{display:flex;gap:10px;margin-top:12px}
-  .links button{flex:1;background:var(--muted);padding:10px;border-radius:10px;border:none;color:#dbeafe;font-weight:700}
-  .status{margin-top:8px;font-size:13px;color:rgba(230,238,248,0.65);text-align:center}
-  /* popup */
-  .popup{position:fixed;left:50%;top:18px;transform:translateX(-50%);padding:12px 18px;border-radius:12px;font-weight:800;color:#fff;opacity:0;pointer-events:none;transition:opacity .35s;z-index:999}
-  .popup.show{opacity:1;pointer-events:auto}
-  .popup.blue{background:#2563eb}
-  .popup.red{background:#dc2626}
-  .popup.sky{background:#0ea5e9}
-  .popup.error{background:#475569}
-  @media(min-width:700px){ .wrap{max-width:640px} }
+  body{margin:0;font-family:Inter,Arial,sans-serif;background:#071225;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh}
+  .msg{max-width:720px;padding:24px;border-radius:12px;background:linear-gradient(180deg,#081226,#071427);text-align:center;box-shadow:0 8px 30px rgba(0,0,0,0.6)}
+  .big{font-size:20px;font-weight:700;margin-bottom:8px}
+  .small{font-size:14px;opacity:0.85;margin-bottom:12px}
+  .btn{display:inline-block;padding:10px 14px;border-radius:8px;background:#2563eb;color:#fff;text-decoration:none;font-weight:700}
+  /* The full app styles (only used on mobile branch, safe to keep) */
+  .app{display:none}
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card header">
-      <img src="logo.png" class="logo" alt="logo">
-      <div class="title">
-        <h1>DragonTiger Analyzer</h1>
-        <p>Premium mobile analyser</p>
+  <!-- This message will show for non-mobile devices -->
+  <div id="desktopMessage" class="msg" role="dialog" aria-live="polite" style="display:none">
+    <div class="big">Please open on a mobile device</div>
+    <div class="small">This analyzer only works on mobile. For your privacy and to prevent accidental webcam capture, camera access is disabled on desktops/laptops.</div>
+    <div><a class="btn" href="javascript:location.reload()">Check again</a></div>
+    <div style="margin-top:12px;font-size:12px;opacity:0.8">If you previously allowed camera for this site, revoke permission from your browser settings (instructions below).</div>
+  </div>
+
+  <!-- Full app (rendered only on mobile) -->
+  <div id="app" class="app" style="width:100%;max-width:480px;padding:16px">
+    <!-- Keep your app markup here (logo, video, canvas, buttons). Kept minimal and safe. -->
+    <div style="background:#0b1220;padding:12px;border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+      <img src="logo.png" alt="logo" style="width:44px;height:44px;border-radius:8px;object-fit:cover">
+      <div>
+        <div style="font-weight:800">DragonTiger Analyzer</div>
+        <div style="font-size:12px;opacity:0.8">Mobile only — capture history strip</div>
       </div>
-      <div style="margin-left:auto;font-size:12px;opacity:.7">v1.1</div>
     </div>
 
-    <div class="card camera">
-      <div style="position:relative">
-        <video id="video" playsinline autoplay muted></video>
-        <canvas id="canvas" width="1260" height="708" style="display:none"></canvas>
-
-        <div class="strip-guide" id="guide"></div>
-        <div class="hint" id="hint">Align history inside the strip</div>
-      </div>
-
-      <div class="controls" style="margin-top:14px">
-        <button id="startBtn" class="start">Start</button>
-        <button id="stopBtn" class="stop">Stop</button>
-        <button id="captureBtn" class="capture" disabled>Capture</button>
-        <button id="analyseBtn" class="analyse" disabled>Analyse</button>
-      </div>
-      <button id="restartBtn" class="restart">Restart</button>
-      <div class="status" id="status">Status: Idle</div>
+    <div style="background:#0b1220;padding:12px;border-radius:12px;margin-bottom:12px;position:relative">
+      <video id="video" playsinline autoplay muted style="width:100%;border-radius:10px;background:#000"></video>
+      <canvas id="canvas" width="1260" height="708" style="display:none"></canvas>
+      <div style="position:absolute;left:6%;right:6%;top:46%;height:12%;border-radius:8px;border:2px dashed rgba(255,255,255,0.06);pointer-events:none"></div>
     </div>
 
-    <div class="card">
-      <div class="links">
-        <button id="gameBtn">Game Link</button>
-        <button id="channelBtn">Channel Link</button>
-      </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+      <button id="startBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#2563eb;color:#fff;font-weight:700">Start Camera</button>
+      <button id="stopBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#334155;color:#fff;font-weight:700">Stop Camera</button>
+      <button id="captureBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#4f46e5;color:#fff;font-weight:700">Capture</button>
+      <button id="analyseBtn" style="flex:1;padding:12px;border-radius:10px;border:none;background:#7c3aed;color:#fff;font-weight:700">Analyse</button>
+    </div>
+
+    <button id="restartBtn" style="width:60%;display:block;margin:8px auto;padding:10px;border-radius:10px;border:none;background:#dc2626;color:#fff;font-weight:800">Restart</button>
+
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank" style="flex:1;background:#2563eb;padding:12px;border-radius:10px;text-decoration:none;color:#fff;font-weight:700;text-align:center">Game Link</a>
+      <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank" style="flex:1;background:#2563eb;padding:12px;border-radius:10px;text-decoration:none;color:#fff;font-weight:700;text-align:center">Channel Link</a>
     </div>
   </div>
 
-  <div id="popup" class="popup"></div>
-
 <script>
-/*
-  STRICT version v1.1
-  - Mobile-only
-  - Live validation: enables Capture only when enough valid bins detected in preview
-  - Bins = 20, require MIN_VALID_BINS (strict)
-  - Color-distance based with tight threshold
+/* STRICT MOBILE-ONLY BOOTSTRAP
+   - If not mobile OR viewport >= 768, show desktopMessage and DO NOT run camera code.
+   - Otherwise initialize the mobile app.
+   - Also provide a safe stop to immediately kill streams if they exist.
 */
 
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const popup = document.getElementById('popup');
-const guide = document.getElementById('guide');
-const hint = document.getElementById('hint');
-const statusEl = document.getElementById('status');
+const isUserAgentMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+const isViewportMobile = window.innerWidth < 768;
+const isMobile = isUserAgentMobile && isViewportMobile;
 
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const captureBtn = document.getElementById('captureBtn');
-const analyseBtn = document.getElementById('analyseBtn');
-const restartBtn = document.getElementById('restartBtn');
-
-const gameBtn = document.getElementById('gameBtn');
-const channelBtn = document.getElementById('channelBtn');
-
-let stream = null;
-let frozen = false;
-let liveCheckInterval = null;
-
-// CONFIG - tune if needed
-const STRIP_TOP = Math.round(708 * 0.46);      // y position of strip in logical canvas
-const STRIP_HEIGHT = Math.round(708 * 0.12);   // height of strip
-const BINS = 20;
-const MIN_VALID_BINS = 18;        // very strict: need at least 18 valid bins in preview
-const MAX_COLOR_DIST = 110;       // lower -> stricter color-match
-
-// Representative colors
-const C_DRAGON = {r:12,g:115,b:245};
-const C_TIGER  = {r:245,g:110,b:30};
-const C_TIE    = {r:135,g:206,b:235};
-
-function isMobile(){ return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent); }
-
-function showPopup(text,type){
-  popup.textContent = text;
-  popup.className = 'popup ' + type + ' show';
-  clearTimeout(popup._t);
-  popup._t = setTimeout(()=> popup.classList.remove('show'), 3000);
+// Utility to stop any stream immediately
+function stopStreamIfAny(stream){
+  try{
+    if(!stream) return;
+    stream.getTracks().forEach(t=>{
+      try{ t.stop(); }catch(e){}
+    });
+  }catch(e){}
 }
 
-// start camera - mobile-only
-startBtn.onclick = async () => {
-  if(!isMobile()){ showPopup('Please open on mobile device!','error'); return; }
-  if(stream) return;
+// If not mobile -> show message and prevent camera code from running
+if(!isMobile){
+  // remove any accidental existing streams (defensive)
   try{
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    video.srcObject = stream;
-    statusEl.textContent = 'Status: Camera started';
-    // start continuous live validation for strip (runs only while not frozen)
-    startLiveValidation();
-  }catch(e){
-    console.error(e);
-    showPopup('Camera Error!','error');
-    statusEl.textContent = 'Status: Camera error';
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia == null){
+      // nothing
+    }
+  }catch(e){}
+  document.getElementById('desktopMessage').style.display='block';
+  // ensure app not visible
+  document.getElementById('app').style.display='none';
+  // Also proactively stop any stream that might be active (best-effort)
+  // Note: If user previously granted permission and a stream is active from prior code, we try to stop it.
+  if(window._dt_stream){
+    stopStreamIfAny(window._dt_stream);
+    window._dt_stream = null;
   }
-};
+  // Do not run any other code
+} else {
+  // Mobile branch: initialize app
+  document.getElementById('desktopMessage').style.display='none';
+  document.getElementById('app').style.display='block';
 
-stopBtn.onclick = () => {
-  stopAll();
-  statusEl.textContent = 'Status: Stopped';
-};
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const startBtn = document.getElementById('startBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const captureBtn = document.getElementById('captureBtn');
+  const analyseBtn = document.getElementById('analyseBtn');
+  const restartBtn = document.getElementById('restartBtn');
 
-function stopAll(){
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream = null; video.srcObject = null; }
-  stopLiveValidation();
-  captureBtn.disabled = true;
-  analyseBtn.disabled = true;
-  hint.style.display = 'none';
-}
+  let stream = null;
+  let frozen = false;
 
-// Live validation: sample preview periodically to enable capture only when valid
-function startLiveValidation(){
-  stopLiveValidation();
-  liveCheckInterval = setInterval(liveValidate, 600); // ~1.6 checks per second
-}
+  // Safety: expose for external stop if needed
+  window._dt_stream = null;
 
-function stopLiveValidation(){
-  if(liveCheckInterval){ clearInterval(liveCheckInterval); liveCheckInterval = null; }
-}
+  function showPopup(msg){
+    // simple native fallback: use alert for clarity (keeps UI minimal)
+    // but avoid annoying alerts: instead console.log + optional visual
+    console.log('POPUP:', msg);
+  }
 
-async function liveValidate(){
-  if(!stream || frozen) return;
-  // draw current video into logical canvas with cover cropping
-  const vw = video.videoWidth || 1260, vh = video.videoHeight || 708;
-  const cw = canvas.width, ch = canvas.height;
-  const videoRatio = vw/vh, canvasRatio = cw/ch;
-  let sx=0, sy=0, sw=vw, sh=vh;
-  if(videoRatio > canvasRatio){ sw = Math.floor(vh * canvasRatio); sx = Math.floor((vw - sw)/2); }
-  else { sh = Math.floor(vw / canvasRatio); sy = Math.floor((vh - sh)/2); }
-  try{
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-  }catch(e){ return; }
+  startBtn.onclick = async ()=>{
+    try{
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+      window._dt_stream = stream;
+      video.srcObject = stream;
+      video.play().catch(()=>{});
+    }catch(err){
+      console.error(err);
+      showPopup('Camera access denied or error.');
+    }
+  };
 
-  // analyze strip quickly (low-sample) to count valid bins
-  const strip = ctx.getImageData(0, STRIP_TOP, cw, STRIP_HEIGHT);
-  const binW = Math.floor(cw / BINS);
-  let valid = 0;
-  for(let b=0;b<BINS;b++){
-    const bx = b * binW;
-    const sampleW = Math.max(6, Math.floor(binW * 0.35));
-    const sampleH = Math.max(4, Math.floor(STRIP_HEIGHT * 0.5));
-    const sx2 = Math.floor(bx + (binW - sampleW)/2);
-    const sy2 = Math.floor((STRIP_HEIGHT - sampleH)/2);
+  stopBtn.onclick = ()=>{
+    if(stream){ stopStreamIfAny(stream); stream = null; window._dt_stream = null; }
+    video.srcObject = null;
+  };
 
-    let rSum=0,gSum=0,bSum=0,cnt=0;
-    for(let yy=sy2; yy<sy2+sampleH; yy+=2){
-      for(let xx=sx2; xx<sx2+sampleW; xx+=2){
-        const idx = (yy * strip.width + xx) * 4;
-        rSum += strip.data[idx]; gSum += strip.data[idx+1]; bSum += strip.data[idx+2];
-        cnt++;
+  captureBtn.onclick = ()=>{
+    if(!stream){ showPopup('Start camera first'); return; }
+    // Capture into fixed logical canvas 1260x708 with cover cropping
+    const vw = video.videoWidth || 1260, vh = video.videoHeight || 708;
+    const cw = canvas.width, ch = canvas.height;
+    const videoRatio = vw/vh, canvasRatio = cw/ch;
+    let sx=0, sy=0, sw=vw, sh=vh;
+    if(videoRatio > canvasRatio){ sw = Math.floor(vh * canvasRatio); sx = Math.floor((vw - sw)/2); }
+    else { sh = Math.floor(vw / canvasRatio); sy = Math.floor((vh - sh)/2); }
+    try{
+      ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
+    }catch(e){
+      console.error(e);
+    }
+    // freeze visual: hide video, show canvas
+    video.style.display = 'none';
+    canvas.style.display = 'block';
+    frozen = true;
+  };
+
+  analyseBtn.onclick = ()=>{
+    if(!frozen){ showPopup('Please capture first'); return; }
+    // Strict analysis: sample fixed strip (y-based)
+    try{
+      const STRIP_TOP = Math.round(708 * 0.46);
+      const STRIP_H = Math.round(708 * 0.12);
+      const strip = ctx.getImageData(0, STRIP_TOP, canvas.width, STRIP_H);
+      // divide into 20 bins, sample center pixel of each bin; require >= 15 valid bins
+      const BINS = 20, MIN_VALID = 15;
+      const binW = Math.floor(strip.width / BINS);
+      let seq = [], valid = 0;
+      for(let i=0;i<BINS;i++){
+        const cx = Math.floor(i*binW + binW/2);
+        const cy = Math.floor(strip.height/2);
+        const idx = (cy * strip.width + cx) * 4;
+        const r = strip.data[idx], g = strip.data[idx+1], b = strip.data[idx+2];
+        // simple strict color tests
+        if(b > 150 && r < 110 && g < 140){ seq.push('D'); valid++; }
+        else if(r > 150 && g < 140 && b < 120){ seq.push('T'); valid++; }
+        else if(b > 160 && g > 160){ seq.push('X'); valid++; }
+        else seq.push(null);
       }
-    }
-    if(cnt===0) continue;
-    const rAvg = rSum/cnt, gAvg = gSum/cnt, bAvg = bSum/cnt;
-    const dD = colorDist(rAvg,gAvg,bAvg,C_DRAGON);
-    const dT = colorDist(rAvg,gAvg,bAvg,C_TIGER);
-    const dX = colorDist(rAvg,gAvg,bAvg,C_TIE);
-    const m = Math.min(dD,dT,dX);
-    if(m <= MAX_COLOR_DIST) valid++;
-  }
-
-  // UI: enable capture only when valid >= MIN_VALID_BINS
-  if(valid >= MIN_VALID_BINS){
-    captureBtn.disabled = false;
-    hint.style.display = 'none';
-    statusEl.textContent = `Status: Ready to capture (${valid}/${BINS})`;
-  } else {
-    captureBtn.disabled = true;
-    hint.style.display = 'block';
-    statusEl.textContent = `Status: Align history — detected ${valid}/${BINS}`;
-  }
-}
-
-// Capture frozen frame (logical canvas already used)
-captureBtn.onclick = () => {
-  if(!stream){ showPopup('Please start camera first','error'); return; }
-  // draw final frame to canvas (same cropping)
-  const vw = video.videoWidth || 1260, vh = video.videoHeight || 708;
-  const cw = canvas.width, ch = canvas.height;
-  const videoRatio = vw/vh, canvasRatio = cw/ch;
-  let sx=0, sy=0, sw=vw, sh=vh;
-  if(videoRatio > canvasRatio){ sw = Math.floor(vh * canvasRatio); sx = Math.floor((vw - sw)/2); }
-  else { sh = Math.floor(vw / canvasRatio); sy = Math.floor((vh - sh)/2); }
-  try{
-    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, cw, ch);
-  }catch(e){ showPopup('Capture Error','error'); return; }
-
-  // freeze UI
-  video.style.display = 'none';
-  canvas.style.display = 'block';
-  frozen = true;
-  stopLiveValidation();
-  // small confirmation
-  showPopup('Captured','blue');
-  // enable analyse
-  analyseBtn.disabled = false;
-  captureBtn.disabled = true;
-};
-
-analyseBtn.onclick = () => {
-  if(!frozen){ showPopup('Please capture first','error'); return; }
-  // read strip and do strict bin-sampling, require MIN_VALID_BINS again
-  try{
-    const cw = canvas.width;
-    const strip = ctx.getImageData(0, STRIP_TOP, cw, STRIP_HEIGHT);
-    const binW = Math.floor(cw / BINS);
-    const sequence = [];
-    let validCount = 0;
-
-    for(let b=0;b<BINS;b++){
-      const bx = b * binW;
-      const sampleW = Math.max(8, Math.floor(binW * 0.4));
-      const sampleH = Math.max(6, Math.floor(STRIP_HEIGHT * 0.6));
-      const sx2 = Math.floor(bx + (binW - sampleW)/2);
-      const sy2 = Math.floor((STRIP_HEIGHT - sampleH)/2);
-
-      let rSum=0,gSum=0,bSum=0,cnt=0;
-      for(let yy=sy2; yy<sy2+sampleH; yy+=2){
-        for(let xx=sx2; xx<sx2+sampleW; xx+=2){
-          const idx = (yy * strip.width + xx) * 4;
-          rSum += strip.data[idx]; gSum += strip.data[idx+1]; bSum += strip.data[idx+2];
-          cnt++;
-        }
+      if(valid < MIN_VALID){
+        showPopup('Invalid capture!');
+        // clear freeze and resume preview
+        setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 600);
+        return;
       }
-      if(cnt===0){ sequence.push(null); continue; }
-      const rAvg = rSum/cnt, gAvg = gSum/cnt, bAvg = bSum/cnt;
-      const dD = colorDist(rAvg,gAvg,bAvg,C_DRAGON);
-      const dT = colorDist(rAvg,gAvg,bAvg,C_TIGER);
-      const dX = colorDist(rAvg,gAvg,bAvg,C_TIE);
-      const m = Math.min(dD,dT,dX);
-      if(m > MAX_COLOR_DIST){ sequence.push(null); continue; }
-      if(m === dD){ sequence.push('D'); validCount++; }
-      else if(m === dT){ sequence.push('T'); validCount++; }
-      else { sequence.push('X'); validCount++; }
-    }
-
-    if(validCount < MIN_VALID_BINS){
-      showPopup('Invalid capture!','error');
-      // clear freeze
-      setTimeout(()=> resumeAfterFail(), 600);
-      return;
-    }
-
-    // compact sequence
-    const compact = sequence.filter(x => x !== null);
-    // pattern engine on last up to 6
-    const last = compact.slice(-6).join('');
-    let result = '', type='blue';
-
-    if(/D{3,}$/.test(last)){ result='Next: Tiger'; type='red'; }
-    else if(/T{3,}$/.test(last)){ result='Next: Dragon'; type='blue'; }
-    else if(/(DT){3,}$/.test(last)){ result='Next: Dragon'; type='blue'; }
-    else if(/(TD){3,}$/.test(last)){ result='Next: Tiger'; type='red'; }
-    else if(last.includes('X')){
-      const prev = getPrevNonX(compact);
-      if(prev==='D'){ result='Next: Dragon + Tie'; type='sky'; }
-      else if(prev==='T'){ result='Next: Tiger + Tie'; type='sky'; }
-      else { result='Next: Dragon'; type='blue'; }
-    } else {
-      // fallback: alternate detection or opposite of last
-      if(last.length>=2 && last[last.length-1] !== last[last.length-2]){
-        result = last[last.length-1]==='D' ? 'Next: Tiger' : 'Next: Dragon';
-        type = result.includes('Dragon') ? 'blue' : 'red';
+      // compact sequence (only non-null)
+      const compact = seq.filter(x=>x!==null);
+      // pattern engine (simple rules)
+      const last = compact.slice(-6).join('');
+      let result = 'Next: Dragon';
+      if(/D{3,}$/.test(last)) result = 'Next: Tiger';
+      else if(/T{3,}$/.test(last)) result = 'Next: Dragon';
+      else if(last.includes('X')){
+        // prefer previous non-X if exists
+        let prev = null;
+        for(let i = compact.length-1; i>=0; i--){ if(compact[i]==='D'||compact[i]==='T'){ prev = compact[i]; break; } }
+        if(prev==='D') result='Next: Dragon + Tie'; else if(prev==='T') result='Next: Tiger + Tie';
       } else {
-        const lastOne = compact[compact.length-1];
-        result = lastOne === 'D' ? 'Next: Tiger' : 'Next: Dragon';
-        type = result.includes('Dragon') ? 'blue' : 'red';
+        // alternate heuristic
+        if(last.length>=2 && last[last.length-1] !== last[last.length-2]) result = last[last.length-1]==='D' ? 'Next: Tiger' : 'Next: Dragon';
+        else result = compact[compact.length-1]==='D' ? 'Next: Tiger' : 'Next: Dragon';
       }
+
+      // show result (console + basic on-screen message)
+      alert(result); // simple strong visible indicator on mobile
+      // cleanup: resume after 3s
+      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 3000);
+    }catch(err){
+      console.error(err);
+      showPopup('Analysis error');
+      setTimeout(()=>{ canvas.style.display='none'; video.style.display='block'; frozen=false; }, 600);
     }
+  };
 
-    showPopup(result, type);
-    setTimeout(()=> resumeAfterSuccess(), 3000);
-
-  }catch(e){
-    console.error(e);
-    showPopup('Analysis Error','error');
-    setTimeout(()=> resumeAfterFail(), 600);
-  }
-};
-
-function getPrevNonX(arr){
-  for(let i=arr.length-1;i>=0;i--){
-    if(arr[i] === 'D' || arr[i] === 'T') return arr[i];
-  }
-  return null;
+  restartBtn.onclick = ()=>{
+    // stop stream if any and reload
+    if(stream){ stopStreamIfAny(stream); stream=null; window._dt_stream=null; }
+    location.reload();
+  };
 }
-
-function colorDist(r,g,b,c){ const dr=r-c.r, dg=g-c.g, db=b-c.b; return Math.sqrt(dr*dr+dg*dg+db*db); }
-
-function resumeAfterFail(){
-  // clear freeze and allow live validation to resume
-  frozen = false;
-  canvas.style.display = 'none';
-  video.style.display = '';
-  captureBtn.disabled = true;
-  analyseBtn.disabled = true;
-  startLiveValidation();
-}
-
-function resumeAfterSuccess(){
-  frozen = false;
-  canvas.style.display = 'none';
-  video.style.display = '';
-  captureBtn.disabled = true;
-  analyseBtn.disabled = true;
-  startLiveValidation();
-}
-
-// Restart
-restartBtn.onclick = ()=> location.reload();
-
-// links
-gameBtn.onclick = ()=> window.open('#','_blank');
-channelBtn.onclick = ()=> window.open('#','_blank');
-
-// stop on unload
-window.addEventListener('beforeunload', ()=>{ if(stream) stream.getTracks().forEach(t=>t.stop()); });
-
-// Initialize guide hint visible state
-hint.style.display = 'none';
-captureBtn.disabled = true;
-analyseBtn.disabled = true;
-
 </script>
+
 </body>
 </html>
