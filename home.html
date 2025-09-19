@@ -7,7 +7,7 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
+      font-family: "Segoe UI", sans-serif;
       background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: #fff;
       text-align: center;
@@ -55,7 +55,6 @@
       margin: 15px 0;
     }
     button {
-      background: #1f4037;
       background: linear-gradient(45deg, #1f4037, #99f2c8);
       border: none;
       padding: 10px 18px;
@@ -88,12 +87,13 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.9);
+      background: linear-gradient(135deg, #141e30, #243b55);
       color: #fff;
-      padding: 25px 30px;
-      border-radius: 15px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.8);
-      font-size: 22px;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 0 25px #00f2fe;
+      font-size: 26px;
+      font-weight: bold;
       display: none;
       z-index: 1000;
       animation: fadeIn 0.3s ease;
@@ -141,6 +141,7 @@
       popup.style.display = "block";
       setTimeout(() => {
         popup.style.display = "none";
+        if (video.srcObject) video.play(); // camera resume
       }, 3000);
     }
 
@@ -169,6 +170,14 @@
     }
 
     function captureFrame() {
+      if (!video.srcObject) {
+        showPopup("Camera not started");
+        return;
+      }
+
+      // Freeze the frame
+      video.pause();
+
       const ctx = canvas.getContext('2d');
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
@@ -187,7 +196,7 @@
 
         if (r > 150 && g < 100 && b < 100) tiger++; // red = tiger
         else if (b > 150 && r < 100) dragon++; // blue = dragon
-        else if (r > 150 && g > 150 && b < 200) tie++; // light sky = tie
+        else if (r > 150 && g > 150 && b < 200) tie++; // light = tie
       }
 
       if (dragon + tiger + tie < 10) {
@@ -197,8 +206,8 @@
 
       let result = "";
       if (tie > 0) {
-        if (dragon > tiger) result = "Dragon + Tie";
-        else result = "Tiger + Tie";
+        if (dragon >= tiger) result = "Dragon";
+        else result = "Tiger";
       } else {
         result = dragon > tiger ? "Dragon" : "Tiger";
       }
