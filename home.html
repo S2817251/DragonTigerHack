@@ -1,86 +1,47 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Dragon 🐉 vs Tiger 🐯 Analyser</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Dragon 🐉 vs Tiger 🐯 Analyser (Mobile)</title>
 <style>
-  :root{
-    --bg:#0f1113;
-    --card:#171819;
-    --muted:#bfc3c7;
-    --btn:#2b2d2f;
-    --accent:#2f9cff;
-  }
+  :root{--bg:#0f1113;--card:#171819;--muted:#9aa0a6;--btn:#2b2d2f}
   *{box-sizing:border-box}
+  html,body{height:100%}
   body{
-    margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
-    background:linear-gradient(180deg,#0b0c0d 0%, #121314 100%);
-    font-family:Inter, "Segoe UI", Roboto, Arial, sans-serif; color:#fff; padding:16px;
+    margin:0; padding:12px; font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;
+    background:linear-gradient(180deg,#0b0c0d,#121314); color:#fff; display:flex; justify-content:center;
   }
-
-  .app {
-    width:100%; max-width:420px; display:flex; flex-direction:column; gap:12px;
-  }
-
-  .header {
-    background:var(--card); padding:16px; border-radius:12px; display:flex; gap:12px; align-items:center;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.6);
-  }
-  .logo {
-    width:64px; height:64px; border-radius:50%; overflow:hidden; flex:0 0 64px; background:#111;
-    display:flex; align-items:center; justify-content:center;
-  }
-  .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .title { font-size:16px; font-weight:600; line-height:1; color:#fff; }
-  .subtitle { font-size:12px; color:var(--muted); margin-top:6px; }
-
-  .viewer {
-    width:100%; background:transparent; display:flex; flex-direction:column; gap:8px;
-  }
-
-  video, canvas {
-    width:100%; height:auto; border-radius:10px; background:#000; border:1px solid #222;
-  }
-
-  .controls {
-    display:flex; gap:8px; flex-wrap:wrap;
-  }
-  .controls button{
-    flex:1; min-width:84px; padding:12px; border-radius:10px; border:none; background:var(--btn); color:#fff;
-    font-weight:600; cursor:pointer;
-  }
-  .controls button:active{ transform:translateY(1px) }
-
-  .popup {
-    position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); z-index:4000;
-    background:var(--card); padding:18px 20px; border-radius:12px; text-align:center; width:80%; max-width:360px;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.7); display:none;
-  }
-  .popup h2{ margin:0; font-size:18px; font-weight:700 }
-  .popup p{ margin:8px 0 0; color:var(--muted); font-size:13px; }
-
-  .links {
-    background:var(--card); padding:12px; border-radius:12px; display:flex; gap:8px; justify-content:space-around;
-  }
-  .links a { text-decoration:none; padding:10px 14px; border-radius:10px; background:#212325; color:#fff; font-weight:600; }
-  .note { font-size:12px; color:var(--muted); text-align:center; margin-top:6px; }
+  .app{width:100%;max-width:420px; display:flex; flex-direction:column; gap:12px; align-items:stretch;}
+  .header{background:var(--card); border-radius:12px; padding:14px; display:flex; gap:12px; align-items:center;}
+  .logo{width:56px;height:56px;border-radius:50%;overflow:hidden;background:#0b0b0b;flex:0 0 56px}
+  .logo img{width:100%;height:100%;object-fit:cover}
+  .hcol{display:flex;flex-direction:column}
+  .title{font-weight:700;font-size:16px}
+  .subtitle{font-size:12px;color:var(--muted);margin-top:4px}
+  .viewer{display:flex;flex-direction:column;gap:8px}
+  video, canvas{width:100%;border-radius:10px;border:1px solid #222;background:#000; height:auto}
+  .controls{display:flex;gap:8px;flex-wrap:wrap}
+  .controls button{flex:1;min-width:80px;padding:12px;border-radius:10px;border:0;background:var(--btn);color:#fff;font-weight:700;cursor:pointer}
+  .note{font-size:12px;color:var(--muted);text-align:center}
+  .links{display:flex;gap:8px;justify-content:space-around;padding:10px;background:var(--card);border-radius:12px}
+  .links a{color:#fff;text-decoration:none;background:#222;padding:9px 12px;border-radius:10px;font-weight:700}
+  .popup{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--card);padding:16px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,0.6);z-index:4000;display:none;text-align:center;min-width:220px;}
+  .popup h2{margin:0 0 6px;font-size:18px}
+  .warning{background:#2b1a1a;color:#ffddd2;padding:8px;border-radius:8px;text-align:center;font-weight:700}
+  @media(min-width:900px){ .app{max-width:700px} }
 </style>
 </head>
 <body>
   <div class="app" id="app">
     <div class="header">
       <div class="logo"><img src="logo.png" alt="logo"></div>
-      <div>
-        <div class="title">Dragon 🐉 vs Tiger 🐯 Analyser</div>
-        <div class="subtitle">Professional | 0% random — only actual history</div>
-      </div>
+      <div class="hcol"><div class="title">Dragon 🐉 vs Tiger 🐯 Analyser</div><div class="subtitle">Mobile-only · Back camera · 0% random</div></div>
     </div>
-
     <div class="viewer">
       <video id="camera" playsinline autoplay muted></video>
-      <canvas id="captureCanvas" style="display:none;"></canvas>
-      <div class="note" id="status">Start camera and point at the game's history board.</div>
+      <canvas id="captureCanvas" style="display:none"></canvas>
+      <div class="note" id="status">Start camera, point to the game's history (board), then press Capture.</div>
     </div>
 
     <div class="controls">
@@ -92,363 +53,339 @@
     </div>
 
     <div class="links">
-      <a id="refLink" href="https://your-refer-link.com" target="_blank">Refer Link</a>
-      <a id="tgLink" href="https://t.me/your-channel" target="_blank">Telegram Channel</a>
+      <a id="ref" href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">Refer Link</a>
+      <a id="tg" href="https://t.me/your-channel" target="_blank">Telegram Channel</a>
     </div>
   </div>
 
-  <div class="popup" id="popup"><h2 id="popupTitle"></h2><p id="popupMsg"></p></div>
+  <div class="popup" id="popup"><h2 id="popupTitle"></h2><div id="popupText" style="color:var(--muted);margin-top:6px;font-size:13px"></div></div>
 
 <script>
-/*
-  Advanced front-end-only analyser:
-  - Freezes capture on 'Capture' (video hidden, canvas shown)
-  - Validates presence of game-history visuals (strict)
-  - Performs k-means (k=3) on colorful pixels to find color clusters
-  - Extracts grid by finding peaks on x/y histograms (columns/rows)
-  - Samples each grid cell to determine cell label (dragon/tiger/tie)
-  - Only when valid detection passes thresholds, returns result
-  - Otherwise returns Error and never gives random result
+/* Strict mobile-only, back camera, 0% random detection code.
+   - Copy index.html + logo.png to GitHub Pages (root). Open on phone.
+   - Best when board fills most of camera view. Good lighting helps.
 */
 
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+if(!isMobile){
+  document.getElementById('warningDesktop').style.display='block';
+}
+
+// Elements
 const video = document.getElementById('camera');
 const canvas = document.getElementById('captureCanvas');
 const ctx = canvas.getContext('2d');
-
 const startBtn = document.getElementById('startCam');
 const stopBtn = document.getElementById('stopCam');
 const captureBtn = document.getElementById('capture');
 const analyseBtn = document.getElementById('analyse');
 const restartBtn = document.getElementById('restart');
-
 const status = document.getElementById('status');
 const popup = document.getElementById('popup');
 const popupTitle = document.getElementById('popupTitle');
-const popupMsg = document.getElementById('popupMsg');
+const popupText = document.getElementById('popupText');
 
 let stream = null;
 let frozenImageData = null;
 
-// helpers
-function showPopup(title, msg='', duration=3000, cb=null){
+// UX helpers
+function showPopup(title, text='', dur=3000, cb=null){
   popupTitle.textContent = title;
-  popupMsg.textContent = msg;
+  popupText.textContent = text;
   popup.style.display = 'block';
-  setTimeout(()=> {
-    popup.style.display = 'none';
-    if(cb) cb();
-  }, duration);
+  setTimeout(()=>{ popup.style.display='none'; if(cb) cb(); }, dur);
 }
-
 function setStatus(t){ status.textContent = t; }
 
-// camera start
+// Start camera (back camera)
 startBtn.addEventListener('click', async ()=>{
   try{
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } }, audio:false});
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" }, width:{ideal:1280}, height:{ideal:720} },
+      audio:false
+    });
     video.srcObject = stream;
-    setStatus('Camera started — point to the board and press Capture.');
+    setStatus('Camera started. Point to the game board and press Capture.');
   }catch(e){
-    showPopup('Error','Camera unavailable. Allow camera permission and try again.',3000);
+    console.error(e);
+    showPopup('Error','Camera not accessible — allow camera permission or use a phone with a back camera.',3500);
   }
 });
 
-// camera stop
+// Stop camera
 stopBtn.addEventListener('click', ()=>{
-  if(stream) {
-    stream.getTracks().forEach(t=>t.stop());
-    stream = null;
-    video.srcObject = null;
-    setStatus('Camera stopped.');
-  }
-  frozenImageData = null;
-  canvas.style.display='none';
-  video.style.display='block';
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null; setStatus('Camera stopped.'); }
+  frozenImageData=null; canvas.style.display='none'; video.style.display='block';
 });
 
-// capture -> freeze
+// Capture (freeze)
 captureBtn.addEventListener('click', ()=>{
-  if(!stream) { showPopup('Error','Start camera first'); return; }
-  // limit capture size for performance (mobile-friendly)
-  const maxW = 720;
-  const naturalW = video.videoWidth;
-  const naturalH = video.videoHeight;
-  const scale = naturalW>maxW ? (maxW / naturalW) : 1;
+  if(!stream){ showPopup('Error','Start camera first'); return; }
+  // limit width for mobile performance
+  const naturalW = video.videoWidth || 1280;
+  const naturalH = video.videoHeight || 720;
+  const maxW = 900;
+  const scale = naturalW>maxW ? (maxW/naturalW) : 1;
   canvas.width = Math.round(naturalW * scale);
   canvas.height = Math.round(naturalH * scale);
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   frozenImageData = ctx.getImageData(0,0,canvas.width,canvas.height);
-  // Validate presence of history right away (strict)
-  const ok = validateHistory(frozenImageData);
-  if(!ok){
+
+  // Strict quick validation: require enough colorful pixels AND localized bounding area
+  if(!validateHistoryStrict(frozenImageData)){
     frozenImageData = null;
-    showPopup('Error','No Dragon/Tiger history detected in capture — try again.','',1500);
+    showPopup('Error','No Dragon/Tiger history detected. Make sure camera points to the history board and try again.',2200);
     return;
   }
+
   video.style.display='none';
   canvas.style.display='block';
-  setStatus('Captured (frozen). Press Analyse to run.');
+  setStatus('Captured (frozen). Press Analyse.');
   showPopup('Captured','Ready to analyse.',1200);
 });
 
-// analyse
+// Analyse (2s visual + strict detection)
 analyseBtn.addEventListener('click', ()=>{
-  if(!frozenImageData){ showPopup('Error','No capture to analyse'); return; }
+  if(!frozenImageData){ showPopup('Error','No capture available.'); return; }
   setStatus('Analysing (2s)...');
-  showPopup('Analysing','Please wait...',2000); // visual 2s
-  setTimeout(()=>{
+  showPopup('Analysing','Please wait...',2000);
+  setTimeout(()=> {
     try{
-      const r = fullAnalyse(frozenImageData);
-      // r is object {valid:boolean, message:string}
-      if(!r.valid){
-        showPopup('Error', r.message, 2500, ()=>{ // unfreeze immediately
-          video.style.display='block';
-          canvas.style.display='none';
-          frozenImageData = null;
-          setStatus('Ready. Start a new capture.');
-        });
+      const result = runStrictAnalysis(frozenImageData);
+      if(!result.valid){
+        showPopup('Error', result.message, 2600, ()=>unfreezeCapture());
       } else {
-        showPopup(r.message, '', 3000, ()=>{ // after popup, unfreeze but do NOT reload
-          video.style.display='block';
-          canvas.style.display='none';
-          frozenImageData = null;
-          setStatus('Result shown. Ready for next capture.');
-        });
+        showPopup('Result', result.message, 3000, ()=>unfreezeCapture());
       }
     }catch(err){
       console.error(err);
-      showPopup('Error','Analysis failed. Try again.',2500, ()=>{
-        video.style.display='block';
-        canvas.style.display='none';
-        frozenImageData = null;
-        setStatus('Ready.');
-      });
+      showPopup('Error','Analysis failed. Try again.',2200, ()=>unfreezeCapture());
     }
   }, 2000);
 });
 
-// restart (manual)
-restartBtn.addEventListener('click', ()=> location.reload());
+// Restart: reset UI and camera feed
+restartBtn.addEventListener('click', ()=>{
+  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; }
+  frozenImageData=null; canvas.style.display='none'; video.style.display='block'; video.srcObject=null; setStatus('Restarted. Start camera.');
+});
 
-// ------------------ Detection core ------------------ //
+// unfreeze (do not reload page)
+function unfreezeCapture(){
+  video.style.display='block';
+  canvas.style.display='none';
+  frozenImageData = null;
+  setStatus('Ready — capture again if you want.');
+}
 
-/*
-  validateHistory(imageData):
-    - Quickly sample and determine if any pixel matches "colorful" signature (possible history)
-    - Very strict: requires a minimum of colorful pixels
+/* ---------- Strict validation & analysis ---------- */
+
+/* validateHistoryStrict:
+   - samples pixels, counts 'colorful' pixels (non-gray)
+   - requires > threshold fraction
+   - also ensures a bounding box area of colorful pixels is large enough
 */
-function validateHistory(imageData){
-  const {data, width, height} = imageData;
-  let colorful = 0, total = 0;
+function validateHistoryStrict(imageData){
+  const {data,width,height} = imageData;
+  let colorful=0, total=0;
+  let minX=width, minY=height, maxX=0, maxY=0;
   const step = 6;
   for(let y=0;y<height;y+=step){
     for(let x=0;x<width;x+=step){
       total++;
-      const i = (y*width + x)*4;
+      const i=(y*width+x)*4;
       const r=data[i], g=data[i+1], b=data[i+2];
       const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
-      if(mx > 60 && (mx - mn) > 30){ colorful++; }
+      if(mx > 70 && (mx - mn) > 40){
+        colorful++;
+        if(x<minX) minX=x;
+        if(y<minY) minY=y;
+        if(x>maxX) maxX=x;
+        if(y>maxY) maxY=y;
+      }
     }
   }
-  // require at least ~1.8% colorful pixels sampled (tuned; prevents random false positives)
-  return (colorful / total) > 0.018;
+  if(total===0) return false;
+  const frac = colorful/total;
+  // require at least 2.2% colorful sampled AND bounding box covers reasonable area
+  const bboxW = Math.max(0, maxX-minX);
+  const bboxH = Math.max(0, maxY-minY);
+  const minBoxW = Math.min(width*0.14, 140);
+  const minBoxH = Math.min(height*0.14, 140);
+  return (frac > 0.022) && (bboxW >= minBoxW && bboxH >= minBoxH);
 }
 
-/*
-  fullAnalyse(imageData):
-    - runs cluster -> bounding box -> grid extraction -> cell sampling -> decision
-    - returns {valid:true/false, message:string}
+/* runStrictAnalysis:
+   - collects colorful samples (dense)
+   - runs small k-means (k=3) on RGB to cluster main colors
+   - labels clusters as dragon/tiger/tie by color heuristics
+   - computes x/y histograms to detect grid peaks
+   - samples each cell center to decide cell label
+   - requires sufficient labeled cells (>=8) else error
+   - returns {valid:boolean, message:string}
 */
-function fullAnalyse(imageData){
-  const {data, width, height} = imageData;
-
-  // 1) collect colorful samples (rgb & x,y)
+function runStrictAnalysis(imageData){
+  const {data,width,height} = imageData;
   const samples = [];
-  const step = 3; // dense enough
+  const step = 3;
   for(let y=0;y<height;y+=step){
     for(let x=0;x<width;x+=step){
-      const i = (y*width + x)*4;
+      const i=(y*width+x)*4;
       const r=data[i], g=data[i+1], b=data[i+2];
       const mx=Math.max(r,g,b), mn=Math.min(r,g,b);
-      if(mx > 60 && (mx - mn) > 30){
+      if(mx > 60 && (mx-mn) > 35){
         samples.push({r,g,b,x,y});
       }
     }
   }
-  if(samples.length < 50) return {valid:false, message:'Error: No Dragon/Tiger history detected (too few colored pixels).'};
+  if(samples.length < 120) return {valid:false, message:'Error: Not enough colored pixels to analyse.'};
 
-  // 2) run small k-means on RGB to get up to 3 clusters (k=3)
-  const k = 3;
-  const centers = kMeansRGB(samples, k, 12); // 12 iterations
-  // map centers -> labels (dragon / tiger / tie) by color heuristics
-  const labeledCenters = labelCenters(centers);
-  // assign each sample to nearest center index 0..k-1
-  const labeledSamples = samples.map(s=>{
-    let bestIdx = 0, bestD = Infinity;
-    for(let i=0;i<k;i++){
-      const c=centers[i];
-      const d = colorDistSqRgb(s, c);
-      if(d < bestD){ bestD=d; bestIdx=i; }
+  // k-means (k=3)
+  const centers = kMeansRGB(samples,3,12);
+  const labels = labelCenters(centers); // map center idx -> 'dragon'|'tiger'|'tie'|'other'
+
+  // assign samples to centers
+  const assigned = samples.map(s=>{
+    let best=0,bd=Infinity;
+    for(let i=0;i<centers.length;i++){
+      const d = colorDistSqRgb(s,centers[i]);
+      if(d<bd){bd=d;best=i}
     }
-    return {...s, cluster: bestIdx};
+    return {...s, cluster:best, label: labels[best]};
   });
 
-  // compute bounding box of colored pixels (only those assigned to clusters)
+  // bounding box of assigned samples
   let minX=width, minY=height, maxX=0, maxY=0;
-  for(const s of labeledSamples){
-    minX = Math.min(minX, s.x);
-    minY = Math.min(minY, s.y);
-    maxX = Math.max(maxX, s.x);
-    maxY = Math.max(maxY, s.y);
+  for(const s of assigned){
+    if(s.x<minX) minX=s.x;
+    if(s.y<minY) minY=s.y;
+    if(s.x>maxX) maxX=s.x;
+    if(s.y>maxY) maxY=s.y;
   }
-  // require bounding box with some area
-  const bboxW = (maxX - minX) || 1;
-  const bboxH = (maxY - minY) || 1;
-  if(bboxW < Math.min(width*0.12, 80) || bboxH < Math.min(height*0.12, 80)){
-    return {valid:false, message:'Error: Detected colored area too small to be valid history.'};
+  if(maxX-minX < Math.min(width*0.12, 100) || maxY-minY < Math.min(height*0.12, 100)){
+    return {valid:false, message:'Error: Detected colored area too small to be a valid history.'};
   }
 
-  // 3) histogram peaks to get grid lines
+  // histograms
   const xHist = new Array(width).fill(0);
   const yHist = new Array(height).fill(0);
-  for(const s of labeledSamples){
-    xHist[s.x] += 1;
-    yHist[s.y] += 1;
+  for(const s of assigned){
+    xHist[s.x]++;
+    yHist[s.y]++;
   }
-  const smooth = arr => {
-    const out = new Array(arr.length).fill(0);
-    const w = 7;
-    for(let i=0;i<arr.length;i++){
-      let sum=0;
-      for(let j=Math.max(0,i-Math.floor(w/2)); j<=Math.min(arr.length-1, i+Math.floor(w/2)); j++){
-        sum += arr[j];
-      }
-      out[i]=sum;
-    }
-    return out;
-  };
-  const xs = smooth(xHist.slice(minX, maxX+1));
-  const ys = smooth(yHist.slice(minY, maxY+1));
+  const xs = smoothArray(xHist.slice(minX, maxX+1),7);
+  const ys = smoothArray(yHist.slice(minY, maxY+1),7);
 
-  function findPeaks(arr, minProm=0.25, minSep=8){
-    const peaks = [];
-    const mx = Math.max(...arr);
-    const threshold = mx * minProm;
-    for(let i=1;i<arr.length-1;i++){
-      if(arr[i] > arr[i-1] && arr[i] >= arr[i+1] && arr[i] >= threshold){
-        // ensure separation
-        if(peaks.length && Math.abs(peaks[peaks.length-1] - i) < minSep) {
-          // keep the higher
-          if(arr[i] > arr[peaks[peaks.length-1]]) peaks[peaks.length-1]=i;
-        } else peaks.push(i);
-      }
+  const peaksX = findPeaks(xs,0.28,Math.max(6,Math.floor((maxX-minX)/20))).map(p=>p+minX);
+  const peaksY = findPeaks(ys,0.28,Math.max(6,Math.floor((maxY-minY)/20))).map(p=>p+minY);
+
+  if(peaksX.length < 4 || peaksY.length < 4) {
+    // fallback to overall color-count method if grid not found
+    const counts = {dragon:0,tiger:0,tie:0};
+    for(const s of assigned){
+      if(s.label==='dragon') counts.dragon++;
+      else if(s.label==='tiger') counts.tiger++;
+      else if(s.label==='tie') counts.tie++;
     }
-    return peaks;
+    const tot = counts.dragon + counts.tiger + counts.tie;
+    if(tot < 160) return {valid:false, message:'Error: Unable to extract grid; insufficient labeled pixels.'};
+    const dp = Math.round((counts.dragon/tot)*100);
+    const tp = Math.round((counts.tiger/tot)*100);
+    if(Math.abs(dp-tp) < 12) return {valid:true, message:`Tie ${dp}% - ${tp}%`};
+    return {valid:true, message: dp>tp ? 'Dragon 🐉' : 'Tiger 🐯' };
   }
 
-  const minSepX = Math.max(6, Math.floor(bboxW / 20));
-  const minSepY = Math.max(6, Math.floor(bboxH / 20));
-  const peaksX = findPeaks(xs, 0.25, minSepX).map(p => p + minX);
-  const peaksY = findPeaks(ys, 0.2, minSepY).map(p => p + minY);
-
-  // require reasonable grid
-  if(peaksX.length >= 4 && peaksY.length >= 4){
-    // we assume grid; sample cell centers
-    const dx = medianDiff(peaksX);
-    const dy = medianDiff(peaksY);
-    const cellRadius = Math.max(4, Math.floor(Math.min(dx,dy) / 3));
-    const cellVotes = [];
-    for(const py of peaksY){
-      for(const px of peaksX){
-        // collect sample points near (px,py)
-        const counts = {dragon:0, tiger:0, tie:0, none:0};
-        for(const s of labeledSamples){
-          const ddx = s.x - px;
-          const ddy = s.y - py;
-          if(ddx*ddx + ddy*ddy <= cellRadius*cellRadius){
-            const lab = labeledCenters[ s.cluster ]; // 'dragon'|'tiger'|'tie'|'other'
-            if(lab==='dragon') counts.dragon++;
-            else if(lab==='tiger') counts.tiger++;
-            else if(lab==='tie') counts.tie++;
-            else counts.none++;
-          }
+  // sample each cell center
+  const dx = medianDiff(peaksX);
+  const dy = medianDiff(peaksY);
+  const cellR = Math.max(4, Math.floor(Math.min(dx,dy)/3));
+  const cellVotes = [];
+  for(const py of peaksY){
+    for(const px of peaksX){
+      // count labels within radius
+      let counts = {dragon:0,tiger:0,tie:0,other:0};
+      for(const s of assigned){
+        const dxs = s.x - px, dys = s.y - py;
+        if(dxs*dxs + dys*dys <= cellR*cellR){
+          if(s.label==='dragon') counts.dragon++;
+          else if(s.label==='tiger') counts.tiger++;
+          else if(s.label==='tie') counts.tie++;
+          else counts.other++;
         }
-        // majority for cell
-        const maxc = Math.max(counts.dragon, counts.tiger, counts.tie);
-        if(maxc === 0) { cellVotes.push('empty'); continue; }
-        if(counts.dragon === maxc && counts.dragon >= Math.max(counts.tiger, counts.tie)) cellVotes.push('dragon');
-        else if(counts.tiger === maxc && counts.tiger >= Math.max(counts.dragon, counts.tie)) cellVotes.push('tiger');
-        else if(counts.tie === maxc && counts.tie >= Math.max(counts.dragon, counts.tiger)) cellVotes.push('tie');
-        else cellVotes.push('empty');
       }
+      const maxc = Math.max(counts.dragon,counts.tiger,counts.tie);
+      if(maxc === 0) cellVotes.push('empty');
+      else if(counts.dragon === maxc && counts.dragon >= counts.tiger && counts.dragon >= counts.tie) cellVotes.push('dragon');
+      else if(counts.tiger === maxc && counts.tiger >= counts.dragon && counts.tiger >= counts.tie) cellVotes.push('tiger');
+      else if(counts.tie === maxc) cellVotes.push('tie');
+      else cellVotes.push('empty');
     }
-    // Count labelled cells
-    const summary = cellVotes.reduce((acc, v)=>{
-      if(v==='dragon') acc.dragon++;
-      else if(v==='tiger') acc.tiger++;
-      else if(v==='tie') acc.tie++;
-      else acc.empty++;
-      return acc;
-    }, {dragon:0,tiger:0,tie:0,empty:0});
+  }
 
-    const labeledCells = summary.dragon + summary.tiger + summary.tie;
-    if(labeledCells < 6){
-      // not enough labeled cells -> invalid
-      return {valid:false, message:'Error: Not enough valid cells detected in history.'};
-    }
-    // final decision
-    const total = summary.dragon + summary.tiger + summary.tie;
-    const dragonPct = (summary.dragon/total)*100;
-    const tigerPct = (summary.tiger/total)*100;
-    const tiePct = (summary.tie/total)*100;
+  const summary = cellVotes.reduce((acc,v)=>{
+    if(v==='dragon') acc.dragon++;
+    else if(v==='tiger') acc.tiger++;
+    else if(v==='tie') acc.tie++;
+    else acc.empty++;
+    return acc;
+  }, {dragon:0,tiger:0,tie:0,empty:0});
 
-    // tie if close between dragon & tiger
-    const diff = Math.abs(dragonPct - tigerPct);
-    if(diff < 10) {
-      return {valid:true, message:`Tie ${Math.round(dragonPct)}% - ${Math.round(tigerPct)}% (Tie ${Math.round(tiePct)}% shown as tie)`};
-    } else if(dragonPct > tigerPct) {
-      return {valid:true, message:'Dragon 🐉'};
-    } else {
-      return {valid:true, message:'Tiger 🐯'};
-    }
+  const labeled = summary.dragon + summary.tiger + summary.tie;
+  if(labeled < 8) return {valid:false, message:'Error: Not enough labeled cells detected.'};
 
+  const tot = summary.dragon + summary.tiger + summary.tie;
+  const dp = (summary.dragon/tot)*100;
+  const tp = (summary.tiger/tot)*100;
+  const tiep = (summary.tie/tot)*100;
+
+  if(Math.abs(dp - tp) < 10) {
+    return {valid:true, message:`Tie ${Math.round(dp)}% - ${Math.round(tp)}%`};
   } else {
-    // fallback: count total labeled pixels per cluster across bounding box
-    const counts = {dragon:0,tiger:0,tie:0,other:0};
-    for(const s of labeledSamples){
-      const lab = labeledCenters[s.cluster];
-      if(lab==='dragon') counts.dragon++;
-      else if(lab==='tiger') counts.tiger++;
-      else if(lab==='tie') counts.tie++;
-      else counts.other++;
-    }
-    const total = counts.dragon + counts.tiger + counts.tie;
-    if(total < 120) return {valid:false, message:'Error: Insufficient colored pixels for confident analysis.'};
-    const dragonPct = (counts.dragon/total)*100;
-    const tigerPct = (counts.tiger/total)*100;
-    const diff = Math.abs(dragonPct - tigerPct);
-    if(diff < 12) {
-      return {valid:true, message:`Tie ${Math.round(dragonPct)}% - ${Math.round(tigerPct)}%`};
-    } else if(dragonPct > tigerPct) {
-      return {valid:true, message:'Dragon 🐉'};
-    } else {
-      return {valid:true, message:'Tiger 🐯'};
-    }
+    return {valid:true, message: dp>tp ? 'Dragon 🐉' : 'Tiger 🐯' };
   }
 }
 
-/* ---------- Utilities: color dist, kmeans, labeling ---------- */
+/* ---------- Utility functions ---------- */
 
-function colorDistSqRgb(a, b){
-  const dr = a.r - b.r;
-  const dg = a.g - b.g;
-  const db = a.b - b.b;
-  return dr*dr + dg*dg + db*db;
+// smoothing simple box blur on array
+function smoothArray(arr, w=5){
+  const out = new Array(arr.length).fill(0);
+  const half = Math.floor(w/2);
+  for(let i=0;i<arr.length;i++){
+    let sum=0,c=0;
+    for(let j=Math.max(0,i-half); j<=Math.min(arr.length-1,i+half); j++){ sum+=arr[j]; c++; }
+    out[i]=sum/c;
+  }
+  return out;
 }
 
-// simple k-means on RGB for given samples (samples: {r,g,b,...})
-function kMeansRGB(samples, k=3, maxIter=10){
-  // pick k random seeds
+// find peaks with simple local maxima
+function findPeaks(arr, minProm=0.2, minSep=6){
+  const peaks=[];
+  const mx = Math.max(...arr);
+  const thr = mx * minProm;
+  for(let i=1;i<arr.length-1;i++){
+    if(arr[i] > arr[i-1] && arr[i] >= arr[i+1] && arr[i] >= thr){
+      if(peaks.length && (i - peaks[peaks.length-1]) < minSep){
+        if(arr[i] > arr[peaks[peaks.length-1]]) peaks[peaks.length-1] = i;
+      } else peaks.push(i);
+    }
+  }
+  return peaks;
+}
+function medianDiff(arr){
+  if(arr.length<2) return 0;
+  const diffs=[];
+  for(let i=1;i<arr.length;i++) diffs.push(Math.abs(arr[i]-arr[i-1]));
+  diffs.sort((a,b)=>a-b);
+  return diffs[Math.floor(diffs.length/2)];
+}
+
+// color squared distance
+function colorDistSqRgb(a,b){ const dr=a.r-b.r, dg=a.g-b.g, db=a.b-b.b; return dr*dr+dg*dg+db*db; }
+
+// simple kmeans on RGB
+function kMeansRGB(samples, k=3, maxIter=12){
   const n = samples.length;
   const centers = [];
   const used = new Set();
@@ -456,33 +393,28 @@ function kMeansRGB(samples, k=3, maxIter=10){
     const idx = Math.floor(Math.random()*n);
     if(used.has(idx)) continue;
     used.add(idx);
-    centers.push({r: samples[idx].r, g: samples[idx].g, b: samples[idx].b});
+    centers.push({r:samples[idx].r, g:samples[idx].g, b:samples[idx].b});
   }
   for(let iter=0; iter<maxIter; iter++){
     const buckets = Array.from({length:k}, ()=>({sumR:0,sumG:0,sumB:0,count:0}));
     for(const s of samples){
-      let bestIdx = 0, bestD = Infinity;
+      let best=0,bd=Infinity;
       for(let i=0;i<k;i++){
-        const d = colorDistSqRgb(s, centers[i]);
-        if(d < bestD){ bestD=d; bestIdx=i; }
+        const d = colorDistSqRgb(s,centers[i]);
+        if(d<bd){bd=d;best=i;}
       }
-      const b = buckets[bestIdx];
-      b.sumR += s.r; b.sumG += s.g; b.sumB += s.b; b.count++;
+      const b = buckets[best]; b.sumR+=s.r; b.sumG+=s.g; b.sumB+=s.b; b.count++;
     }
-    // recompute centers; if any bucket empty, re-init to random sample
-    let changed = false;
+    let changed=false;
     for(let i=0;i<k;i++){
-      const b = buckets[i];
-      if(b.count === 0){
-        const idx = Math.floor(Math.random()*n);
-        centers[i] = {r:samples[idx].r, g:samples[idx].g, b:samples[idx].b}; changed=true;
+      const b=buckets[i];
+      if(b.count===0){
+        const idx=Math.floor(Math.random()*n);
+        centers[i]={r:samples[idx].r,g:samples[idx].g,b:samples[idx].b};
+        changed=true;
       } else {
-        const nr = Math.round(b.sumR / b.count);
-        const ng = Math.round(b.sumG / b.count);
-        const nb = Math.round(b.sumB / b.count);
-        if(nr !== centers[i].r || ng !== centers[i].g || nb !== centers[i].b){
-          centers[i] = {r:nr, g:ng, b:nb}; changed=true;
-        }
+        const nr=Math.round(b.sumR/b.count), ng=Math.round(b.sumG/b.count), nb=Math.round(b.sumB/b.count);
+        if(nr!==centers[i].r||ng!==centers[i].g||nb!==centers[i].b){ centers[i]={r:nr,g:ng,b:nb}; changed=true; }
       }
     }
     if(!changed) break;
@@ -490,51 +422,40 @@ function kMeansRGB(samples, k=3, maxIter=10){
   return centers;
 }
 
-// label centers -> 'dragon' (blue), 'tiger' (orange/red), 'tie' (cyan/green), 'other'
+// map centers to labels by heuristics
 function labelCenters(centers){
-  // compute scores for each center
+  // compute simple scores
   const scores = centers.map(c=>{
     const blueScore = c.b - (c.r + c.g)/2;
     const orangeScore = c.r - (c.g + c.b)/2;
     const cyanScore = (c.g + c.b)/2 - c.r;
     return {blueScore, orangeScore, cyanScore};
   });
-  // assign label for each center: find which label that center is best at
   const labels = new Array(centers.length).fill('other');
   for(let i=0;i<centers.length;i++){
-    const s = scores[i];
-    if(s.blueScore > 25 && s.blueScore >= s.cyanScore && s.blueScore >= s.orangeScore) labels[i]='dragon';
-    else if(s.orangeScore > 25 && s.orangeScore >= s.blueScore && s.orangeScore >= s.cyanScore) labels[i]='tiger';
-    else if(s.cyanScore > 20 && s.cyanScore >= s.blueScore && s.cyanScore >= s.orangeScore) labels[i]='tie';
+    const s=scores[i];
+    if(s.blueScore > 30 && s.blueScore >= s.cyanScore && s.blueScore >= s.orangeScore) labels[i]='dragon';
+    else if(s.orangeScore > 30 && s.orangeScore >= s.blueScore && s.orangeScore >= s.cyanScore) labels[i]='tiger';
+    else if(s.cyanScore > 22 && s.cyanScore >= s.blueScore && s.cyanScore >= s.orangeScore) labels[i]='tie';
     else labels[i]='other';
   }
-  // Edge case: if none labeled, try to pick best candidates by maxima
+  // ensure at least one label for each type if scores present
   if(!labels.includes('dragon')){
-    // pick center with max blueScore
-    let best=0, val=-Infinity;
-    for(let i=0;i<scores.length;i++){ if(scores[i].blueScore>val){ val=scores[i].blueScore; best=i; } }
-    if(val>5) labels[best]='dragon';
+    let best=0,val=-Infinity;
+    for(let i=0;i<scores.length;i++) if(scores[i].blueScore>val){val=scores[i].blueScore;best=i;}
+    if(val>8) labels[best]='dragon';
   }
   if(!labels.includes('tiger')){
-    let best=0, val=-Infinity;
-    for(let i=0;i<scores.length;i++){ if(scores[i].orangeScore>val){ val=scores[i].orangeScore; best=i; } }
-    if(val>5) labels[best]='tiger';
+    let best=0,val=-Infinity;
+    for(let i=0;i<scores.length;i++) if(scores[i].orangeScore>val){val=scores[i].orangeScore;best=i;}
+    if(val>8) labels[best]='tiger';
   }
   if(!labels.includes('tie')){
-    let best=0, val=-Infinity;
-    for(let i=0;i<scores.length;i++){ if(scores[i].cyanScore>val){ val=scores[i].cyanScore; best=i; } }
-    if(val>5) labels[best]='tie';
+    let best=0,val=-Infinity;
+    for(let i=0;i<scores.length;i++) if(scores[i].cyanScore>val){val=scores[i].cyanScore;best=i;}
+    if(val>8) labels[best]='tie';
   }
   return labels;
-}
-
-// median difference between consecutive sorted positions
-function medianDiff(arr){
-  if(arr.length < 2) return 0;
-  const diffs = [];
-  for(let i=1;i<arr.length;i++) diffs.push(Math.abs(arr[i]-arr[i-1]));
-  diffs.sort((a,b)=>a-b);
-  return diffs[Math.floor(diffs.length/2)];
 }
 </script>
 </body>
