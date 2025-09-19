@@ -41,8 +41,8 @@ video, canvas { width:100%; border-radius:12px; border:1px solid #333; margin-bo
 <div class="popup" id="popup"><h2 id="popupText"></h2></div>
 
 <div class="link-box">
-  <a href="https://your-refer-link.com" target="_blank">Refer Link</a>
-  <a href="https://t.me/your-channel" target="_blank">Telegram Channel</a>
+  <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">Game Link</a>
+  <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">Telegram Channel</a>
 </div>
 
 <script>
@@ -87,6 +87,14 @@ captureBtn.onclick = () => {
   canvas.height = video.videoHeight;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   frozenImage = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  // validate only Dragon/Tiger history
+  if (!validateHistory(frozenImage)) {
+    frozenImage = null;
+    showPopup("Error: No Dragon/Tiger history detected"); 
+    return;
+  }
+
   video.style.display = 'none';
   canvas.style.display = 'block';
   showPopup("Captured! Ready to Analyse");
@@ -98,21 +106,44 @@ analyseBtn.onclick = () => {
   showPopup("Analysing...", 2000);
   setTimeout(() => {
     const result = analyseDragonTiger(frozenImage);
-    showPopup(result, 3000, true); // auto reset after popup
+    showPopup(result, 3000, false); // auto unfreeze, but no page reload
+    // unfreeze after popup
+    setTimeout(() => {
+      video.style.display = 'block';
+      canvas.style.display = 'none';
+      frozenImage = null; // ready for next capture
+    }, 3000);
   }, 2000);
 };
 
-// Restart
+// Restart button (full page reload)
 restartBtn.onclick = () => location.reload();
 
 // Popup function
-function showPopup(msg, duration = 2000, autoReset = false) {
+function showPopup(msg, duration = 2000) {
   popupText.textContent = msg;
   popup.style.display = 'block';
-  setTimeout(() => {
-    popup.style.display = 'none';
-    if (autoReset) location.reload();
-  }, duration);
+  setTimeout(() => { popup.style.display = 'none'; }, duration);
+}
+
+// Validate if Dragon/Tiger history exists in capture
+function validateHistory(imageData) {
+  const data = imageData.data;
+  const width = imageData.width;
+  const height = imageData.height;
+  let found = false;
+  for (let y = 0; y < height; y += 10) {
+    for (let x = 0; x < width; x += 10) {
+      const i = (y * width + x) * 4;
+      const r = data[i], g = data[i+1], b = data[i+2];
+      // simplistic detection: red for dragon, blue for tiger
+      if ((r>150 && g<100 && b<100) || (b>150 && r<100 && g<100)) { 
+        found = true; break; 
+      }
+    }
+    if(found) break;
+  }
+  return found;
 }
 
 // 0% random analyser
