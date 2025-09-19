@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dragon Tiger Analyser</title>
+  <title>Dragon Tiger Analyzer</title>
   <style>
     body {
       margin: 0;
@@ -13,10 +13,10 @@
       text-align: center;
     }
     header {
-      background: rgba(0, 0, 0, 0.4);
+      background: rgba(0,0,0,0.3);
       padding: 12px;
       border-radius: 0 0 20px 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.6);
     }
     header img {
       height: 40px;
@@ -42,12 +42,13 @@
       height: 100%;
       object-fit: cover;
     }
+    /* Kinw box - fixed strip */
     .selection-box {
       position: absolute;
-      top: 45%;
+      top: 85%;     /* exactly bottom strip */
       left: 0;
       width: 100%;
-      height: 10%; /* Patla kinw box */
+      height: 12%;  /* slim */
       border: 2px dashed #ffeb3b;
       pointer-events: none;
     }
@@ -67,13 +68,11 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.5);
       transition: transform 0.2s;
     }
-    button:hover {
-      transform: scale(1.05);
-    }
+    button:hover { transform: scale(1.05); }
     .links-card {
       margin: 25px auto;
       padding: 15px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       border-radius: 15px;
       width: 80%;
       box-shadow: 0 4px 12px rgba(0,0,0,0.6);
@@ -87,27 +86,28 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: linear-gradient(135deg, #141e30, #243b55);
-      color: #fff;
       padding: 30px 40px;
       border-radius: 20px;
-      box-shadow: 0 0 25px #00f2fe;
-      font-size: 26px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.8);
+      font-size: 28px;
       font-weight: bold;
       display: none;
       z-index: 1000;
       animation: fadeIn 0.3s ease;
     }
+    .dragon { background: linear-gradient(135deg,#1e3c72,#2a5298); color:#fff; }
+    .tiger { background: linear-gradient(135deg,#f7971e,#ffd200); color:#000; }
+    .error { background: linear-gradient(135deg,#ff512f,#dd2476); color:#fff; }
     @keyframes fadeIn {
-      from {opacity: 0; transform: translate(-50%, -40%);}
-      to {opacity: 1; transform: translate(-50%, -50%);}
+      from {opacity:0; transform:translate(-50%,-40%);}
+      to {opacity:1; transform:translate(-50%,-50%);}
     }
   </style>
 </head>
 <body>
   <header>
     <img src="logo.png" alt="Logo">
-    <h1>Dragon Tiger Analyser</h1>
+    <h1>Dragon Tiger Analyzer</h1>
   </header>
 
   <div class="camera-container">
@@ -119,7 +119,7 @@
   <div class="btn-group">
     <button onclick="startCamera()">Start Camera</button>
     <button onclick="stopCamera()">Stop Camera</button>
-    <button onclick="captureFrame()">Capture</button>
+    <button onclick="captureFrame()">Capture & Analyse</button>
     <button onclick="restartPage()">Restart</button>
   </div>
 
@@ -131,30 +131,31 @@
   <div id="popup" class="popup"></div>
 
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const popup = document.getElementById('popup');
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const popup = document.getElementById("popup");
     let stream = null;
 
-    function showPopup(msg) {
+    function showPopup(msg, type="error") {
       popup.innerText = msg;
+      popup.className = "popup " + type;
       popup.style.display = "block";
       setTimeout(() => {
         popup.style.display = "none";
-        if (video.srcObject) video.play(); // camera resume
+        if (video.srcObject) video.play();
       }, 3000);
     }
 
     async function startCamera() {
       if (!/Mobi|Android/i.test(navigator.userAgent)) {
-        showPopup("Please open on a mobile device");
+        showPopup("Please open on a mobile device", "error");
         return;
       }
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         video.srcObject = stream;
       } catch (err) {
-        showPopup("Camera not accessible");
+        showPopup("Camera not accessible", "error");
       }
     }
 
@@ -165,57 +166,56 @@
       }
     }
 
-    function restartPage() {
-      location.reload();
-    }
+    function restartPage() { location.reload(); }
 
     function captureFrame() {
       if (!video.srcObject) {
-        showPopup("Camera not started");
+        showPopup("Camera not started", "error");
         return;
       }
 
-      // Freeze the frame
-      video.pause();
+      video.pause(); // freeze
 
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext("2d");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // Slim box capture
-      const boxTop = Math.floor(canvas.height * 0.45);
-      const boxHeight = Math.floor(canvas.height * 0.1);
+      const boxTop = Math.floor(canvas.height * 0.85);
+      const boxHeight = Math.floor(canvas.height * 0.12);
       const imageData = ctx.getImageData(0, boxTop, canvas.width, boxHeight);
 
       let dragon = 0, tiger = 0, tie = 0;
       for (let i = 0; i < imageData.data.length; i += 4) {
-        const r = imageData.data[i];
-        const g = imageData.data[i+1];
-        const b = imageData.data[i+2];
-
-        if (r > 150 && g < 100 && b < 100) tiger++; // red = tiger
-        else if (b > 150 && r < 100) dragon++; // blue = dragon
-        else if (r > 150 && g > 150 && b < 200) tie++; // light = tie
+        const r = imageData.data[i], g = imageData.data[i+1], b = imageData.data[i+2];
+        if (r > 150 && g < 100 && b < 100) tiger++;       // Tiger (red/orange)
+        else if (b > 150 && r < 100) dragon++;            // Dragon (blue)
+        else if (r > 150 && g > 150 && b < 200) tie++;    // Tie (sky blue-ish)
       }
 
       const totalPixels = imageData.data.length / 4;
       const validPixels = dragon + tiger + tie;
 
-      // Strict validation: at least 5% of pixels must be valid
       if (validPixels < totalPixels * 0.05) {
-        showPopup("No valid history detected");
+        showPopup("⚠️ No valid history detected", "error");
         return;
       }
 
       let result = "";
-      if (tie > 0) {
-        result = (dragon >= tiger) ? "Dragon" : "Tiger";
-      } else {
-        result = (dragon > tiger) ? "Dragon" : "Tiger";
+      const diff = Math.abs(dragon - tiger);
+      if (diff < validPixels * 0.1) {
+        showPopup("⚠️ Unable to analyse properly", "error");
+        return;
       }
 
-      showPopup("Result: " + result);
+      if (tie > 0) {
+        result = (dragon >= tiger) ? "🐉 Dragon" : "🐯 Tiger";
+      } else {
+        result = (dragon > tiger) ? "🐉 Dragon" : "🐯 Tiger";
+      }
+
+      const type = result.includes("Dragon") ? "dragon" : "tiger";
+      showPopup("Result: " + result, type);
     }
   </script>
 </body>
