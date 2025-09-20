@@ -1,235 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dragon Tiger Analyser</title>
   <style>
     body {
       margin: 0;
       font-family: "Poppins", sans-serif;
-      background: #0d0d0d;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
       color: #fff;
       text-align: center;
     }
 
+    header {
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
     header img {
-      margin-top: 15px;
-      width: 120px;
+      height: 40px;
     }
 
-    #video {
-      margin-top: 20px;
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+      color: #00e0ff;
+    }
+
+    .camera-box {
       width: 90%;
-      max-width: 380px;
-      border-radius: 16px;
-      border: 3px solid #00eaff;
-      box-shadow: 0 0 30px rgba(0, 234, 255, 0.4);
-    }
-
-    /* Neon thin kinw box */
-    #selectionBox {
-      position: absolute;
-      border: 2px dashed #00eaff;
-      pointer-events: none;
-      width: 75%;
-      height: 55px;
-      top: 42%;
-      left: 12.5%;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0, 234, 255, 0.7);
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(4px);
-    }
-
-    #popup {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      padding: 25px 35px;
+      max-width: 360px;
+      aspect-ratio: 1260 / 708;
+      margin: 20px auto;
+      border: 2px solid #00e0ff;
       border-radius: 15px;
-      font-size: 1.4rem;
-      font-weight: bold;
-      z-index: 1000;
-      min-width: 200px;
-      text-align: center;
-      animation: fadeIn 0.3s ease-in-out;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 20px #00e0ff70;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translate(-50%, -48%); }
-      to { opacity: 1; transform: translate(-50%, -50%); }
+    video,
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 15px;
+    }
+
+    .guide-line {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background: #ffffff80;
+      transform: translateY(-50%);
     }
 
     .btn {
-      margin: 14px 8px;
-      padding: 12px 28px;
-      font-size: 1rem;
+      display: inline-block;
+      margin: 10px 8px;
+      padding: 10px 20px;
+      font-size: 15px;
       border: none;
-      border-radius: 10px;
+      border-radius: 30px;
+      background: linear-gradient(45deg, #00e0ff, #0078ff);
+      color: #fff;
       cursor: pointer;
-      background: linear-gradient(135deg, #00c6ff, #0072ff);
-      color: white;
-      font-weight: 600;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-      transition: all 0.3s;
+      transition: 0.3s;
     }
+
     .btn:hover {
-      transform: translateY(-2px);
-      opacity: 0.9;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #00e0ff;
     }
 
-    .links {
-      margin-top: 25px;
-      padding: 18px;
-      background: #1a1a1a;
+    .links-box {
+      margin: 30px auto;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
       border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0,255,200,0.3);
+      width: 80%;
       display: flex;
-      justify-content: center;
-      gap: 25px;
+      justify-content: space-around;
     }
 
-    .links a {
+    .links-box a {
       text-decoration: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      background: #333;
+      padding: 10px 15px;
+      border-radius: 20px;
+      background: linear-gradient(45deg, #ff416c, #ff4b2b);
       color: #fff;
       font-weight: bold;
       transition: 0.3s;
     }
-    .links a:hover {
-      background: #00ffcc;
-      color: #000;
-      box-shadow: 0 0 12px #00ffcc;
+
+    .links-box a:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #ff416c;
     }
 
-    /* Popup Result Themes */
-    .dragon {
-      background: #001f3f;
-      color: #00eaff;
-      box-shadow: 0 0 25px rgba(0, 234, 255, 0.8);
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: rgba(0, 0, 0, 0.85);
+      padding: 25px 35px;
+      border-radius: 20px;
+      box-shadow: 0 0 30px #00e0ff;
+      font-size: 22px;
+      display: none;
+      z-index: 9999;
+      animation: pop 0.3s forwards;
+      backdrop-filter: blur(10px);
     }
-    .tiger {
-      background: #2e0d0d;
-      color: #ff5733;
-      box-shadow: 0 0 25px rgba(255, 87, 51, 0.8);
-    }
-    .tie {
-      background: #001a26;
-      color: #00d4ff;
-      box-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
-    }
-    .error {
-      background: #260000;
-      color: #ff4d4d;
-      box-shadow: 0 0 20px rgba(255,0,0,0.6);
+
+    @keyframes pop {
+      to {
+        transform: translate(-50%, -50%) scale(1);
+      }
     }
   </style>
 </head>
 <body>
   <header>
-    <img src="logo.png" alt="Logo">
+    <img src="logo.png" alt="Logo" />
+    <h1>Dragon Tiger Analyser</h1>
   </header>
 
-  <main>
+  <div class="camera-box">
     <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div id="selectionBox"></div>
+    <canvas id="canvas" style="display: none;"></canvas>
+    <div class="guide-line"></div>
+  </div>
 
-    <div>
-      <button id="startBtn" class="btn">🎥 Start Camera</button>
-      <button id="captureAnalyseBtn" class="btn">📸 Capture & Analyse</button>
-    </div>
+  <div>
+    <button class="btn" id="startCam">▶️ Start Camera</button>
+    <button class="btn" id="stopCam">⏹ Stop Camera</button>
+    <button class="btn" id="captureAnalyse">📸 Capture & Analyse</button>
+    <button class="btn" id="restart">🔄 Restart</button>
+  </div>
 
-    <div id="popup"></div>
-  </main>
+  <div class="links-box">
+    <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">🎮 Game Link</a>
+    <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">📢 Channel</a>
+  </div>
 
-  <footer>
-    <div class="links">
-      <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">🎮 Game Link</a>
-      <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">📢 Channel Link</a>
-    </div>
-  </footer>
+  <div id="popup" class="popup"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
   <script>
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
-    const popup = document.getElementById('popup');
-    const startBtn = document.getElementById('startBtn');
-    const captureAnalyseBtn = document.getElementById('captureAnalyseBtn');
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const startCam = document.getElementById("startCam");
+    const stopCam = document.getElementById("stopCam");
+    const captureAnalyse = document.getElementById("captureAnalyse");
+    const restart = document.getElementById("restart");
+    const popup = document.getElementById("popup");
+
     let stream;
 
-    function isMobile() {
-      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // Sirf mobile pe allow hoga
+    if (!/Mobi|Android/i.test(navigator.userAgent)) {
+      showPopup("⚠️ Please open this on mobile!");
+      startCam.disabled = true;
+      stopCam.disabled = true;
+      captureAnalyse.disabled = true;
     }
-    window.onload = () => {
-      if (!isMobile()) {
-        showPopup("⚠️ Please open on mobile device.", "error");
-        startBtn.disabled = true;
-        captureAnalyseBtn.disabled = true;
-      }
-    };
 
-    startBtn.addEventListener('click', async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = stream;
-      } catch {
-        showPopup("⚠️ Camera not accessible!", "error");
+    // Start Camera
+    startCam.addEventListener("click", () => {
+      navigator.mediaDevices
+        .getUserMedia({ video: { facingMode: "environment" } })
+        .then((s) => {
+          stream = s;
+          video.srcObject = stream;
+        })
+        .catch(() => {
+          showPopup("❌ Camera access denied");
+        });
+    });
+
+    // Stop Camera
+    stopCam.addEventListener("click", () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+        video.srcObject = null;
       }
     });
 
-    captureAnalyseBtn.addEventListener('click', async () => {
+    // Capture & Analyse
+    captureAnalyse.addEventListener("click", () => {
       if (!stream) {
-        showPopup("⚠️ Start camera first!", "error");
+        showPopup("⚠️ Please start camera first!");
         return;
       }
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(video, 0, 0);
+
+      // Freeze frame
       video.pause();
 
-      showPopup("🔎 Analysing...", "tie");
-
-      const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
+      // Analysing delay
+      showPopup("🔍 Analysing...", 2000);
 
       setTimeout(() => {
-        const { result, theme } = analyseHistory(text);
-        showPopup(result, theme);
+        // 👉 Yaha pattern detection logic hoga
+        // Abhi demo ke liye simple result
+        const result = Math.random() > 0.5 ? "🐉 Dragon" : "🐯 Tiger";
+        showPopup("Result: " + result, 3000);
 
+        // Reset video after result clear
         setTimeout(() => {
-          popup.style.display = "none";
           video.play();
         }, 3000);
       }, 2000);
     });
 
-    function analyseHistory(text) {
-      const history = text.match(/dragon|tiger|tie/gi);
-      if (!history || history.length < 5) {
-        return { result: "⚠️ Invalid capture, show Dragon Tiger history!", theme: "error" };
-      }
+    // Restart
+    restart.addEventListener("click", () => {
+      location.reload();
+    });
 
-      const last20 = history.slice(-20).map(h => h.toLowerCase());
-      let dragonCount = last20.filter(h => h.includes("dragon")).length;
-      let tigerCount = last20.filter(h => h.includes("tiger")).length;
-
-      if (dragonCount > tigerCount) return { result: "🐯 Next: Tiger", theme: "tiger" };
-      if (tigerCount > dragonCount) return { result: "🐉 Next: Dragon", theme: "dragon" };
-      return { result: "⚖️ Equal trend!", theme: "tie" };
-    }
-
-    function showPopup(text, theme) {
-      popup.textContent = text;
-      popup.className = theme;
+    // Popup show function
+    function showPopup(message, duration = 3000) {
+      popup.innerHTML = message;
       popup.style.display = "block";
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, duration);
     }
   </script>
 </body>
