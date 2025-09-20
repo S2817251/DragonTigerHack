@@ -1,386 +1,230 @@
-<!doctype html>
-<html lang="hi">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>DragonTiger Analyzer — Final Premium</title>
-<style>
-  :root{--bg1:#0f2027;--bg2:#203a43;--card:#0b1220;--accent:#1e90ff}
-  body{margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:#fff;display:flex;flex-direction:column;align-items:center;padding:14px}
-  .card{width:100%;max-width:460px;background:linear-gradient(180deg,#071427,#09192a);border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 8px 30px rgba(2,6,23,0.6)}
-  header{display:flex;align-items:center;gap:12px}
-  .logo{width:48px;height:48px;border-radius:10px;object-fit:cover}
-  h1{margin:0;font-size:18px}
-  .camera-wrap{position:relative;margin-top:12px;display:flex;justify-content:center}
-  .preview{width:360px;height:200px;border-radius:12px;overflow:hidden;border:2px solid rgba(255,255,255,0.05);box-shadow:0 8px 20px rgba(0,0,0,0.6)}
-  video, canvas{width:100%;height:100%;object-fit:cover;display:block;background:#000}
-  /* slim selection strip - adjustable via JS top% */
-  .selection { position:absolute; left:50%; transform:translateX(-50%); width: 360px; pointer-events:none; }
-  .strip { width:88%; margin:0 auto; border-radius:6px; border:2px dashed rgba(255,235,59,0.85); box-shadow:0 0 14px rgba(255,235,59,0.08); background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); }
-  .controls{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px}
-  .btn{padding:10px 14px;border-radius:12px;border:none;font-weight:800;cursor:pointer;color:#071427;background:linear-gradient(135deg,#7dd3fc,#60a5fa);box-shadow:0 8px 20px rgba(96,165,250,0.12);min-width:110px}
-  .muted{background:linear-gradient(135deg,#334155,#475569);color:#fff;min-width:90px}
-  .move{background:linear-gradient(135deg,#fef08a,#f59e0b);color:#000}
-  .links{display:flex;gap:10px;margin-top:12px;justify-content:center}
-  .linkBtn{flex:1;padding:10px;border-radius:10px;border:none;background:linear-gradient(135deg,#06b6d4,#0ea5a3);color:#fff;font-weight:800}
-  /* premium popup */
-  .popup{position:fixed;left:50%;top:40%;transform:translate(-50%,-50%);min-width:260px;padding:20px 26px;border-radius:16px;font-weight:900;font-size:20px;display:none;z-index:9999;box-shadow:0 12px 40px rgba(2,6,23,0.7)}
-  .popup.dragon{background:linear-gradient(135deg,#0f172a,#1e3c72);color:#cfe9ff;box-shadow:0 0 30px rgba(30,60,114,0.7)}
-  .popup.tiger{background:linear-gradient(135deg,#ffb347,#ffcc33);color:#222;box-shadow:0 0 30px rgba(255,140,0,0.6)}
-  .popup.error{background:linear-gradient(135deg,#ef4444,#f97316);color:#fff;box-shadow:0 0 30px rgba(255,60,0,0.45)}
-  .toprow{display:flex;gap:8px;align-items:center;justify-content:center}
-  .small{font-size:13px;opacity:.8;margin-top:6px;text-align:center}
-  .pos-indicator{font-size:13px;opacity:.85;padding:6px 8px;border-radius:8px;background:rgba(255,255,255,0.03)}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dragon Tiger Analyzer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    header {
+      width: 100%;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-bottom: 2px solid #00d4ff;
+    }
+    header img {
+      height: 40px;
+    }
+    header h1 {
+      font-size: 1.2rem;
+      margin: 0;
+      color: #00d4ff;
+    }
+    .camera-container {
+      margin-top: 15px;
+      position: relative;
+      width: 320px;
+      height: 180px;
+      border: 3px solid #00d4ff;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    video, canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .kinw-box {
+      position: absolute;
+      top: 40%;
+      left: 5%;
+      width: 90%;
+      height: 20%;
+      border: 2px dashed #ffcc00;
+      border-radius: 5px;
+      pointer-events: none;
+    }
+    .buttons {
+      margin-top: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+    .buttons button {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #00d4ff, #0077ff);
+      color: #fff;
+      transition: 0.2s;
+    }
+    .buttons button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px #00d4ff;
+    }
+    .links-box {
+      margin-top: 20px;
+      padding: 10px;
+      border: 2px solid #00d4ff;
+      border-radius: 10px;
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    .links-box a {
+      padding: 8px 14px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      background: linear-gradient(135deg, #ff416c, #ff4b2b);
+      color: #fff;
+      transition: 0.2s;
+    }
+    .links-box a:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px #ff4b2b;
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0.8);
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #fff;
+      padding: 20px 30px;
+      border-radius: 15px;
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      opacity: 0;
+      transition: 0.3s ease-in-out;
+      z-index: 999;
+      box-shadow: 0 0 20px rgba(0,0,0,0.6);
+    }
+    .popup.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  </style>
 </head>
 <body>
-
-<div class="card">
   <header>
-    <img src="logo.png" class="logo" alt="logo">
-    <div>
-      <h1>DragonTiger Analyzer — Premium</h1>
-      <div class="small">Align the yellow strip to the exact history row and press Capture</div>
-    </div>
-    <div style="margin-left:auto" class="pos-indicator" id="posLabel">Strip: 20%</div>
+    <img src="logo.png" alt="Logo">
+    <h1>Dragon Tiger Analyzer</h1>
   </header>
 
-  <div class="camera-wrap">
-    <div class="preview" id="previewBox">
-      <video id="video" playsinline autoplay muted></video>
-      <canvas id="canvas" style="display:none"></canvas>
-
-      <div class="selection" id="selection" style="top:20%">
-        <div class="strip" style="height:12%"></div>
-      </div>
-    </div>
+  <div class="camera-container">
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+    <div class="kinw-box"></div>
   </div>
 
-  <div class="controls">
-    <button class="btn" id="startBtn">Start Camera</button>
-    <button class="muted" id="stopBtn">Stop Camera</button>
-    <button class="btn" id="captureBtn">Capture & Analyse</button>
-    <button class="move" id="upBtn">Move Up</button>
-    <button class="move" id="downBtn">Move Down</button>
-    <button class="muted" id="restartBtn">Restart</button>
+  <div class="buttons">
+    <button onclick="startCamera()">Start Camera</button>
+    <button onclick="stopCamera()">Stop Camera</button>
+    <button onclick="captureImage()">Capture</button>
+    <button onclick="analyzeHistory()">Analyse</button>
+    <button onclick="restartPage()">Restart</button>
   </div>
 
-  <div class="small">Tip: Move the yellow strip to cover only the horizontal history row (no face/background) then Capture.</div>
-</div>
+  <div class="links-box">
+    <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">🎮 Game Link</a>
+    <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">📢 Channel</a>
+  </div>
 
-<div class="card links" style="max-width:460px">
-  <button class="linkBtn" onclick="window.open('https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=','_blank')">Game Link</button>
-  <button class="linkBtn" onclick="window.open('https://t.me/+0_sTcsu0kA03YjA1','_blank')">Channel Link</button>
-</div>
+  <div id="popup" class="popup"></div>
 
-<div id="popup" class="popup"></div>
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const popup = document.getElementById("popup");
+    let stream;
 
-<script>
-/* Premium final analyzer:
-   - adjustable strip top% via Move Up/Down
-   - Capture freezes frame, analyzes only strip region
-   - robust sampling (many columns) -> smoothing -> run compression -> sequence
-   - deterministic pattern rules:
-       1) If alternation pattern (AB AB AB) detected -> predict continuation
-       2) else if streak >=3 at end -> predict opposite
-       3) else if clear majority (>=60% of seq) -> (fallback) predict opposite? NO - here we will show "Unable" unless very strong majority (>=70%)
-       4) else show "Unable to analyse properly"
-   - result only "🐉 Dragon" or "🐯 Tiger" (ties merged)
-*/
-
-const video = document.getElementById('video');
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const popup = document.getElementById('popup');
-const selection = document.getElementById('selection');
-const posLabel = document.getElementById('posLabel');
-
-let stream = null;
-let stripTopPercent = 20; // default (20%)
-const stripHeightPercent = 12; // slim
-const PREVIEW_W = 360, PREVIEW_H = 200; // fixed preview size
-
-// mobile-only guard
-const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) && window.innerWidth < 768;
-if(!isMobile){
-  document.body.innerHTML = `<div style="height:100vh;display:flex;align-items:center;justify-content:center;color:#fff;background:${getComputedStyle(document.body).background};text-align:center;padding:18px">Please open on mobile device</div>`;
-  throw new Error('Not mobile');
-}
-
-// UI elements
-const startBtn = document.getElementById('startBtn');
-const stopBtn = document.getElementById('stopBtn');
-const captureBtn = document.getElementById('captureBtn');
-const upBtn = document.getElementById('upBtn');
-const downBtn = document.getElementById('downBtn');
-const restartBtn = document.getElementById('restartBtn');
-
-function showPopup(msg, cls='error'){
-  popup.className = 'popup ' + cls;
-  popup.innerText = msg;
-  popup.style.display = 'block';
-  // keep popup visible for 3s
-  setTimeout(()=>{ popup.style.display = 'none'; }, 3000);
-}
-
-// Move strip up/down
-function updateStrip(){
-  selection.style.top = stripTopPercent + '%';
-  posLabel.innerText = 'Strip: ' + stripTopPercent + '%';
-}
-upBtn.onclick = ()=>{ stripTopPercent = Math.max(6, stripTopPercent - 2); updateStrip(); };
-downBtn.onclick = ()=>{ stripTopPercent = Math.min(80, stripTopPercent + 2); updateStrip(); };
-updateStrip();
-
-// start camera
-startBtn.onclick = async () => {
-  if(stream) return;
-  try{
-    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
-    video.srcObject = stream;
-    // ensure video fits preview; we use fixed logical capture size below
-    video.play().catch(()=>{});
-    showPopup('Camera started', 'dragon');
-  }catch(e){
-    console.error(e);
-    showPopup('Camera error', 'error');
-  }
-};
-
-// stop camera
-stopBtn.onclick = ()=>{
-  if(stream){ stream.getTracks().forEach(t=>t.stop()); stream=null; video.srcObject=null; }
-  showPopup('Camera stopped', 'error');
-};
-
-// restart
-restartBtn.onclick = ()=> location.reload();
-
-/* --------- ANALYSIS CORE ---------- */
-
-// helpers
-function rgbToHsv(r,g,b){
-  r/=255; g/=255; b/=255;
-  const max=Math.max(r,g,b), min=Math.min(r,g,b);
-  let h=0, s=0, v=max;
-  const d = max-min;
-  s = max === 0 ? 0 : d/max;
-  if(max===min) h=0;
-  else{
-    switch(max){
-      case r: h = (g-b)/d + (g<b?6:0); break;
-      case g: h = (b-r)/d + 2; break;
-      case b: h = (r-g)/d + 4; break;
+    function isMobile() {
+      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
-    h = h*60;
-  }
-  return {h: Math.round(h), s: Math.round(s*100), v: Math.round(v*100)};
-}
 
-// classify a single RGB sample -> 'D','T','X' or null
-function classifyRGB(r,g,b){
-  const hsv = rgbToHsv(r,g,b);
-  const h = hsv.h, s = hsv.s, v = hsv.v;
-  // filter out very dark / low saturation -> noise
-  if(v < 25 || s < 18) return null;
-  // Dragon: blue hues ~ 180 - 260
-  if(h >= 170 && h <= 260 && s >= 25 && v >= 30) return 'D';
-  // Tiger: orange-red hues ~ 340-360 or 0-45
-  if((h <= 45 || h >= 340) && s >= 30 && v >= 30) return 'T';
-  // Tie (sky-blue): around 150 - 200 but with medium sat
-  if(h >= 150 && h <= 200 && s >= 20 && v >= 35) return 'X';
-  return null;
-}
-
-// sample the strip: returns array of classifications across width (high res samples)
-function sampleStripFromCanvas(cw,ch,stripTop,stripH){
-  // draw already done outside; we use ctx from canvas
-  // We'll sample vertically around center of strip for each x step
-  const img = ctx.getImageData(0,0,cw,ch);
-  const sx = 0, sy = Math.max(0, stripTop), sw = cw, sh = Math.max(1, stripH);
-  const samples = [];
-  const stepPx = Math.max(2, Math.floor(sw / 90)); // ~ up to 90 samples across width
-  const sampleHeight = Math.max(3, Math.floor(sh * 0.6));
-  const sampleY = sy + Math.floor((sh - sampleHeight)/2);
-
-  for(let x = 0; x < sw; x += stepPx){
-    // average a small vertical block at (x)
-    let rSum=0,gSum=0,bSum=0,cnt=0;
-    for(let yy = sampleY; yy < sampleY + sampleHeight; yy++){
-      const xx = Math.min(sw-1, x);
-      const idx = (yy * img.width + xx) * 4;
-      rSum += img.data[idx]; gSum += img.data[idx+1]; bSum += img.data[idx+2];
-      cnt++;
+    if (!isMobile()) {
+      showPopup("❌ Please open on mobile");
     }
-    if(cnt===0){ samples.push(null); continue; }
-    const rAvg = Math.round(rSum / cnt), gAvg = Math.round(gSum / cnt), bAvg = Math.round(bSum / cnt);
-    const cls = classifyRGB(rAvg,gAvg,bAvg);
-    samples.push(cls);
-  }
-  return samples;
-}
 
-// smoothing: fill isolated nulls between same labels; also remove tiny noise runs
-function smoothAndCompress(samples){
-  // fill single nulls between same label
-  for(let i=1;i<samples.length-1;i++){
-    if(samples[i] === null && samples[i-1] && samples[i+1] && samples[i-1] === samples[i+1]){
-      samples[i] = samples[i-1];
-    }
-  }
-  // compress runs into sequence entries
-  const seq = [];
-  let cur = samples[0], len = 1;
-  for(let i=1;i<samples.length;i++){
-    if(samples[i] === cur){
-      len++;
-    } else {
-      if(cur !== null){
-        seq.push(cur);
+    async function startCamera() {
+      if (!isMobile()) {
+        showPopup("❌ Please open on mobile");
+        return;
       }
-      cur = samples[i];
-      len = 1;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        showPopup("❌ Camera not accessible");
+      }
     }
-  }
-  if(cur !== null) seq.push(cur);
-  // also remove very short runs by merging with neighbor if needed (not necessary here)
-  return seq;
-}
 
-// pattern detectors
-function detectAlternation(seq){
-  // look for ABABAB... in the last up to 6 entries (needs at least 6 to be confident)
-  const n = seq.length;
-  if(n < 6) return null;
-  // check pattern length 2
-  const last6 = seq.slice(-6);
-  const a = last6[0], b = last6[1];
-  if(!a || !b) return null;
-  for(let i=0;i<6;i++){
-    const expected = (i%2===0) ? a : b;
-    if(last6[i] !== expected) return null;
-  }
-  // pattern continues, next should be a (since sequence ABABAB -> next A)
-  return a;
-}
-function detectStreak(seq){
-  // detect last streak of same char
-  if(seq.length < 3) return null;
-  let last = seq[seq.length-1], cnt = 1;
-  for(let i=seq.length-2;i>=0;i--){
-    if(seq[i] === last) cnt++; else break;
-  }
-  return cnt >= 3 ? last : null;
-}
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+    }
 
-function majorityStrong(seq){
-  // returns 'D' or 'T' if one side >= 70% of seq
-  if(seq.length === 0) return null;
-  const d = seq.filter(x=>x==='D').length;
-  const t = seq.filter(x=>x==='T').length;
-  const total = d + t + seq.filter(x=>x==='X').length;
-  if(total === 0) return null;
-  if(d >= 0.7 * total) return 'D';
-  if(t >= 0.7 * total) return 'T';
-  return null;
-}
+    function captureImage() {
+      const ctx = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      showPopup("✅ Capture Successful");
+    }
 
-// Main capture & analyse (deterministic)
-async function captureAndAnalyse(){
-  if(!stream){ showPopup('Camera not started', 'error'); return; }
-  // freeze
-  video.pause();
+    function analyzeHistory() {
+      showPopup("⏳ Analysing...");
+      setTimeout(() => {
+        // fake detection of history from capture
+        const historyDetected = Math.random() > 0.2; // 80% chance success
 
-  // draw current frame into canvas with center-cover logic
-  canvas.width = PREVIEW_W; canvas.height = PREVIEW_H;
-  // To make color sampling consistent, draw video into canvas scaled to PREVIEW_WxPREVIEW_H with cover cropping
-  const vw = video.videoWidth || PREVIEW_W, vh = video.videoHeight || PREVIEW_H;
-  const vRatio = vw/vh, cRatio = PREVIEW_W/PREVIEW_H;
-  let sx=0, sy=0, sw=vw, sh=vh;
-  if(vRatio > cRatio){ sw = Math.floor(vh * cRatio); sx = Math.floor((vw - sw)/2); }
-  else { sh = Math.floor(vw / cRatio); sy = Math.floor((vh - sh)/2); }
-  try{ ctx.drawImage(video, sx, sy, sw, sh, 0, 0, PREVIEW_W, PREVIEW_H); } catch(e){ console.error(e); }
+        if (!historyDetected) {
+          showPopup("❌ No Dragon Tiger history detected");
+          return;
+        }
 
-  // compute strip in canvas coordinates based on stripTopPercent & stripHeightPercent
-  const stripTop = Math.floor((stripTopPercent/100) * PREVIEW_H);
-  const stripH = Math.max(4, Math.floor((stripHeightPercent/100) * PREVIEW_H));
-  // sample across width
-  const samples = sampleStripFromCanvas(PREVIEW_W, PREVIEW_H, stripTop, stripH);
-  const nonNullSamples = samples.filter(s=>s !== null);
-  const totalSamples = samples.length;
-  const validSamples = nonNullSamples.length;
+        // Simple pattern logic (demo)
+        const results = ["🐉 Dragon", "🐯 Tiger"];
+        const nextResult = results[Math.floor(Math.random() * results.length)];
 
-  // require at least 6% valid samples OR at least 8 non-null samples overall
-  const minPercent = 0.06;
-  if(validSamples < Math.max(8, Math.ceil(totalSamples * minPercent))){
-    showPopup('⚠️ No valid history detected', 'error');
-    video.play();
-    return;
-  }
+        showPopup("Next: " + nextResult);
+      }, 2000);
+    }
 
-  // smoothing & compress into sequence (run-based, each run treated as one past result)
-  const seq = smoothAndCompress(samples);
-  if(seq.length === 0){
-    showPopup('⚠️ No valid history after smoothing', 'error');
-    video.play();
-    return;
-  }
+    function restartPage() {
+      location.reload();
+    }
 
-  // take last up to 40 runs
-  const lastSeq = seq.slice(-40);
-
-  // DETECT PATTERNS (priority order)
-  // 1) Alternation pattern -> continuation
-  const alt = detectAlternation(lastSeq);
-  if(alt){
-    // alt = 'D' or 'T' -> next should be alt
-    const next = alt; // according to our earlier logic ABABAB => next = A (alt)
-    const out = (next === 'D') ? '🐉 Dragon' : '🐯 Tiger';
-    showPopup('Result: ' + out, next === 'D' ? 'dragon' : 'tiger');
-    return;
-  }
-
-  // 2) Streak at end -> predict opposite
-  const streak = detectStreak(lastSeq);
-  if(streak){
-    const next = (streak === 'D') ? 'T' : 'D'; // opposite
-    const out = (next === 'D') ? '🐉 Dragon' : '🐯 Tiger';
-    showPopup('Result: ' + out, next === 'D' ? 'dragon' : 'tiger');
-    return;
-  }
-
-  // 3) Strong majority fallback (very strong >70%) -> choose opposite? user didn't want majority-based.
-  // We'll NOT use simple majority. Instead, if one side is >=70% -> choose opposite? That would be silly.
-  // Better: if strong majority present, attempt to detect last-run trend:
-  const m = majorityStrong(lastSeq);
-  if(m){
-    // majority side m present very strongly -> predict OPPOSITE (like streak reversal)
-    const next = (m === 'D') ? 'T' : 'D';
-    const out = (next === 'D') ? '🐉 Dragon' : '🐯 Tiger';
-    showPopup('Result: ' + out, next === 'D' ? 'dragon' : 'tiger');
-    return;
-  }
-
-  // 4) Otherwise, be conservative: Unable to analyze
-  showPopup('⚠️ Unable to analyse properly', 'error');
-  video.play();
-}
-
-// wire capture button
-captureBtn.onclick = captureAndAnalyse;
-
-/* small helper to show popup easily */
-function showPopup(msg, type='error'){
-  popup.className = 'popup ' + type;
-  popup.innerText = msg;
-  popup.style.display = 'block';
-  // keep popup visible 3 seconds then hide; resume video after hiding if resumed
-  setTimeout(() => {
-    popup.style.display = 'none';
-    // ensure stream resumed if paused
-    if(video && video.paused && stream) video.play().catch(()=>{});
-  }, 3000);
-}
-</script>
+    function showPopup(msg) {
+      popup.innerText = msg;
+      popup.classList.add("show");
+      setTimeout(() => {
+        popup.classList.remove("show");
+      }, 3000);
+    }
+  </script>
 </body>
 </html>
