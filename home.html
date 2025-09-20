@@ -41,7 +41,7 @@
     .camera-container {
       margin: 20px 0;
       width: 320px;
-      height: 180px;
+      height: 60px; /* Slim strip for history line */
       border: 3px solid gold;
       border-radius: 12px;
       overflow: hidden;
@@ -81,7 +81,7 @@
     }
 
     .bottom-links {
-      margin-top: auto;
+      margin-top: 40px; /* upar shift */
       width: 100%;
       padding: 15px;
       background: rgba(0, 0, 0, 0.4);
@@ -161,7 +161,7 @@
     const popup = document.getElementById("popup");
     let stream = null;
 
-    // Check if mobile
+    // Block non-mobile
     if (!/Mobi|Android/i.test(navigator.userAgent)) {
       showPopup("⚠️ Please open on Mobile");
       disableButtons();
@@ -169,10 +169,12 @@
 
     document.getElementById("startBtn").addEventListener("click", async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
         video.srcObject = stream;
       } catch (err) {
-        showPopup("⚠️ Camera not accessible");
+        showPopup("⚠️ Back camera not accessible");
       }
     });
 
@@ -201,18 +203,22 @@
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      // TODO: Replace with real image detection logic
+      // TODO: Replace with real detection logic
       setTimeout(() => {
-        const result = fakeAnalysis();
-        showPopup(result);
-      }, 2000); // simulate analysis delay
+        const result = analyseHistory(canvas);
+        if (!result) {
+          showPopup("⚠️ Invalid capture (no history found)");
+        } else {
+          showPopup(result);
+        }
+      }, 2000); // simulate delay
     }
 
-    function fakeAnalysis() {
-      // Placeholder analysis: Always analyse history (not random in final build)
-      // For demo: return fixed cycle
+    function analyseHistory(canvas) {
+      // Placeholder: In real version analyse the captured history
+      // For now return fixed cycle for testing
       const choices = ["🐉 Dragon", "🐯 Tiger", "⚖️ Tie"];
-      return choices[Math.floor(Math.random() * choices.length)];
+      return choices[new Date().getSeconds() % 3];
     }
 
     function showPopup(message) {
