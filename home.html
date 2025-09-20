@@ -7,35 +7,39 @@
   <style>
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #111;
+      font-family: "Poppins", sans-serif;
+      background: #0d0d0d;
       color: #fff;
       text-align: center;
     }
 
     header img {
-      margin-top: 10px;
+      margin-top: 15px;
       width: 120px;
     }
 
     #video {
-      margin-top: 15px;
+      margin-top: 20px;
       width: 90%;
-      max-width: 400px;
-      border-radius: 12px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+      max-width: 380px;
+      border-radius: 16px;
+      border: 3px solid #00eaff;
+      box-shadow: 0 0 30px rgba(0, 234, 255, 0.4);
     }
 
-    /* Thin selection box */
+    /* Neon thin kinw box */
     #selectionBox {
       position: absolute;
-      border: 2px dashed #00ffcc;
+      border: 2px dashed #00eaff;
       pointer-events: none;
-      width: 80%;
-      height: 60px;
-      top: 40%;
-      left: 10%;
-      border-radius: 8px;
+      width: 75%;
+      height: 55px;
+      top: 42%;
+      left: 12.5%;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 234, 255, 0.7);
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(4px);
     }
 
     #popup {
@@ -44,45 +48,55 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      padding: 25px;
-      background: #222;
-      border-radius: 12px;
-      font-size: 1.3rem;
+      padding: 25px 35px;
+      border-radius: 15px;
+      font-size: 1.4rem;
       font-weight: bold;
       z-index: 1000;
-      box-shadow: 0 0 20px rgba(0,255,200,0.6);
+      min-width: 200px;
+      text-align: center;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -48%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
     }
 
     .btn {
-      margin: 12px;
-      padding: 12px 25px;
+      margin: 14px 8px;
+      padding: 12px 28px;
       font-size: 1rem;
       border: none;
-      border-radius: 8px;
+      border-radius: 10px;
       cursor: pointer;
       background: linear-gradient(135deg, #00c6ff, #0072ff);
       color: white;
-      transition: 0.3s;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      transition: all 0.3s;
     }
     .btn:hover {
-      opacity: 0.8;
+      transform: translateY(-2px);
+      opacity: 0.9;
     }
 
     .links {
-      margin-top: 20px;
-      padding: 15px;
-      background: #222;
-      border-radius: 12px;
+      margin-top: 25px;
+      padding: 18px;
+      background: #1a1a1a;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0,255,200,0.3);
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 25px;
     }
 
     .links a {
       text-decoration: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      background: #444;
+      padding: 12px 20px;
+      border-radius: 10px;
+      background: #333;
       color: #fff;
       font-weight: bold;
       transition: 0.3s;
@@ -90,6 +104,29 @@
     .links a:hover {
       background: #00ffcc;
       color: #000;
+      box-shadow: 0 0 12px #00ffcc;
+    }
+
+    /* Popup Result Themes */
+    .dragon {
+      background: #001f3f;
+      color: #00eaff;
+      box-shadow: 0 0 25px rgba(0, 234, 255, 0.8);
+    }
+    .tiger {
+      background: #2e0d0d;
+      color: #ff5733;
+      box-shadow: 0 0 25px rgba(255, 87, 51, 0.8);
+    }
+    .tie {
+      background: #001a26;
+      color: #00d4ff;
+      box-shadow: 0 0 25px rgba(0, 212, 255, 0.8);
+    }
+    .error {
+      background: #260000;
+      color: #ff4d4d;
+      box-shadow: 0 0 20px rgba(255,0,0,0.6);
     }
   </style>
 </head>
@@ -118,9 +155,7 @@
     </div>
   </footer>
 
-  <!-- Tesseract OCR -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
-
   <script>
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
@@ -130,47 +165,44 @@
     const captureAnalyseBtn = document.getElementById('captureAnalyseBtn');
     let stream;
 
-    // Mobile only
     function isMobile() {
       return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
     }
     window.onload = () => {
       if (!isMobile()) {
-        showPopup("⚠️ Please open on mobile device.");
+        showPopup("⚠️ Please open on mobile device.", "error");
         startBtn.disabled = true;
         captureAnalyseBtn.disabled = true;
       }
     };
 
-    // Start Camera
     startBtn.addEventListener('click', async () => {
       try {
         stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
       } catch {
-        showPopup("⚠️ Camera not accessible!");
+        showPopup("⚠️ Camera not accessible!", "error");
       }
     });
 
-    // Capture & Analyse
     captureAnalyseBtn.addEventListener('click', async () => {
       if (!stream) {
-        showPopup("⚠️ Start camera first!");
+        showPopup("⚠️ Start camera first!", "error");
         return;
       }
 
-      // Freeze frame
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       video.pause();
 
-      showPopup("🔎 Analysing...");
+      showPopup("🔎 Analysing...", "tie");
+
       const { data: { text } } = await Tesseract.recognize(canvas, 'eng');
 
       setTimeout(() => {
-        const result = analyseHistory(text);
-        showPopup(result);
+        const { result, theme } = analyseHistory(text);
+        showPopup(result, theme);
 
         setTimeout(() => {
           popup.style.display = "none";
@@ -179,25 +211,24 @@
       }, 2000);
     });
 
-    // Analyse Logic
     function analyseHistory(text) {
       const history = text.match(/dragon|tiger|tie/gi);
       if (!history || history.length < 5) {
-        return "⚠️ Invalid capture, show Dragon Tiger history!";
+        return { result: "⚠️ Invalid capture, show Dragon Tiger history!", theme: "error" };
       }
 
       const last20 = history.slice(-20).map(h => h.toLowerCase());
       let dragonCount = last20.filter(h => h.includes("dragon")).length;
       let tigerCount = last20.filter(h => h.includes("tiger")).length;
 
-      if (dragonCount > tigerCount) return "🐯 Next: Tiger";
-      if (tigerCount > dragonCount) return "🐉 Next: Dragon";
-      return "⚖️ Equal trend!";
+      if (dragonCount > tigerCount) return { result: "🐯 Next: Tiger", theme: "tiger" };
+      if (tigerCount > dragonCount) return { result: "🐉 Next: Dragon", theme: "dragon" };
+      return { result: "⚖️ Equal trend!", theme: "tie" };
     }
 
-    // Popup
-    function showPopup(text) {
+    function showPopup(text, theme) {
       popup.textContent = text;
+      popup.className = theme;
       popup.style.display = "block";
     }
   </script>
