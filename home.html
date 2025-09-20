@@ -4,176 +4,175 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dragon Tiger Analyser</title>
-
-  <!-- Tesseract.js OCR -->
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-
   <style>
     body {
       font-family: Arial, sans-serif;
       background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-      color: white;
-      text-align: center;
       margin: 0;
       padding: 0;
-    }
-    header {
-      padding: 15px;
-      background: rgba(0,0,0,0.6);
       display: flex;
+      flex-direction: column;
       align-items: center;
-      justify-content: center;
-      gap: 10px;
-      border-bottom: 2px solid cyan;
+      justify-content: flex-start;
+      min-height: 100vh;
+      color: #fff;
     }
+
+    header {
+      width: 100%;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.4);
+      text-align: center;
+      border-bottom: 2px solid gold;
+    }
+
     header img {
-      height: 40px;
+      height: 50px;
+      vertical-align: middle;
     }
-    #camera-container {
-      position: relative;
-      margin: 20px auto;
-      width: 90%;
-      max-width: 1260px;
-      aspect-ratio: 1260/708;
-      border: 2px solid cyan;
+
+    header h1 {
+      display: inline-block;
+      margin-left: 10px;
+      font-size: 24px;
+      color: gold;
+    }
+
+    .camera-container {
+      margin: 20px 0;
+      width: 320px;
+      height: 180px;
+      border: 3px solid gold;
       border-radius: 12px;
       overflow: hidden;
-      backdrop-filter: blur(10px);
-      background: rgba(255, 255, 255, 0.05);
+      position: relative;
+      background: #000;
     }
+
     video, canvas {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-    .overlay {
-      position: absolute;
-      top: 25%;
-      left: 10%;
-      width: 80%;
-      height: 50%;
-      border: 2px solid rgba(0, 255, 255, 0.7);
-      border-radius: 6px;
-      pointer-events: none;
-    }
+
     .buttons {
-      margin: 20px;
+      margin: 15px 0;
       display: flex;
-      justify-content: center;
+      gap: 10px;
       flex-wrap: wrap;
-      gap: 12px;
+      justify-content: center;
     }
+
     button {
-      padding: 12px 20px;
-      font-size: 16px;
+      background: gold;
+      color: #000;
       border: none;
+      padding: 10px 18px;
       border-radius: 8px;
+      font-weight: bold;
       cursor: pointer;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      color: white;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.4);
-      transition: transform 0.2s;
+      transition: 0.3s;
+      font-size: 15px;
     }
+
     button:hover {
+      background: #ffcc00;
       transform: scale(1.05);
     }
-    #links-box {
-      margin-top: 30px;
+
+    .bottom-links {
+      margin-top: auto;
+      width: 100%;
       padding: 15px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.4);
       display: flex;
       justify-content: center;
       gap: 15px;
+      border-top: 2px solid gold;
     }
-    #links-box a {
+
+    .bottom-links a {
       text-decoration: none;
-      color: white;
-      font-weight: bold;
-      background: linear-gradient(135deg, #ff512f, #dd2476);
-      padding: 10px 18px;
-      border-radius: 8px;
-      transition: 0.3s;
     }
-    #links-box a:hover {
-      opacity: 0.8;
+
+    .bottom-links button {
+      background: #111;
+      color: gold;
+      border: 1px solid gold;
     }
-    /* Popup */
-    #popup {
+
+    /* Premium popup */
+    .popup {
       position: fixed;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%) scale(0);
-      background: rgba(0, 0, 0, 0.85);
+      transform: translate(-50%, -50%) scale(0.7);
+      background: rgba(0, 0, 0, 0.9);
       padding: 25px 40px;
-      border-radius: 12px;
-      color: white;
-      font-size: 26px;
+      border-radius: 14px;
+      border: 2px solid gold;
+      color: gold;
+      font-size: 28px;
       font-weight: bold;
-      z-index: 999;
-      transition: transform 0.3s ease-in-out;
+      text-align: center;
+      opacity: 0;
+      transition: 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 0 20px gold;
     }
-    #popup.show {
+    .popup.show {
+      opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
   </style>
 </head>
 <body>
-
   <header>
-    <img src="logo.png" alt="Logo">
-    <h2>Dragon Tiger Analyser</h2>
+    <img src="logo.png" alt="Logo" />
+    <h1>Dragon Tiger Analyser</h1>
   </header>
 
-  <div id="camera-container">
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-    <div class="overlay"></div>
+  <div class="camera-container">
+    <video id="camera" autoplay playsinline></video>
+    <canvas id="captureCanvas" style="display:none;"></canvas>
   </div>
 
   <div class="buttons">
     <button id="startBtn">Start Camera</button>
     <button id="stopBtn">Stop Camera</button>
-    <button id="captureBtn">Capture & Analyse</button>
+    <button id="captureAnalyseBtn">Capture & Analyse</button>
     <button id="restartBtn">Restart</button>
   </div>
 
-  <div id="links-box">
-    <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">🎮 Game Link</a>
-    <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">📢 Channel Link</a>
+  <div class="bottom-links">
+    <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">
+      <button>🎮 Game Link</button>
+    </a>
+    <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">
+      <button>📢 Channel Link</button>
+    </a>
   </div>
 
-  <div id="popup"></div>
+  <div id="popup" class="popup"></div>
 
   <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+    const video = document.getElementById("camera");
+    const canvas = document.getElementById("captureCanvas");
     const popup = document.getElementById("popup");
-
     let stream = null;
 
-    function showPopup(msg) {
-      popup.innerHTML = msg;
-      popup.classList.add("show");
-      setTimeout(() => popup.classList.remove("show"), 3000);
-    }
-
-    // Mobile only check
-    function isMobile() {
-      return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    // Check if mobile
+    if (!/Mobi|Android/i.test(navigator.userAgent)) {
+      showPopup("⚠️ Please open on Mobile");
+      disableButtons();
     }
 
     document.getElementById("startBtn").addEventListener("click", async () => {
-      if (!isMobile()) {
-        showPopup("⚠️ Please open on mobile device");
-        return;
-      }
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
       } catch (err) {
-        showPopup("❌ Camera access denied");
+        showPopup("⚠️ Camera not accessible");
       }
     });
 
@@ -188,60 +187,48 @@
       location.reload();
     });
 
-    document.getElementById("captureBtn").addEventListener("click", () => {
+    document.getElementById("captureAnalyseBtn").addEventListener("click", () => {
       if (!stream) {
         showPopup("⚠️ Start camera first");
         return;
       }
+      captureAndAnalyse();
+    });
 
-      // Freeze frame
+    function captureAndAnalyse() {
+      const ctx = canvas.getContext("2d");
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      showPopup("🔍 Analysing...");
+      // TODO: Replace with real image detection logic
+      setTimeout(() => {
+        const result = fakeAnalysis();
+        showPopup(result);
+      }, 2000); // simulate analysis delay
+    }
 
-      // Crop overlay area
-      const cropX = canvas.width * 0.1;
-      const cropY = canvas.height * 0.25;
-      const cropW = canvas.width * 0.8;
-      const cropH = canvas.height * 0.5;
-      const cropped = ctx.getImageData(cropX, cropY, cropW, cropH);
+    function fakeAnalysis() {
+      // Placeholder analysis: Always analyse history (not random in final build)
+      // For demo: return fixed cycle
+      const choices = ["🐉 Dragon", "🐯 Tiger", "⚖️ Tie"];
+      return choices[Math.floor(Math.random() * choices.length)];
+    }
 
-      const tempCanvas = document.createElement("canvas");
-      tempCanvas.width = cropW;
-      tempCanvas.height = cropH;
-      tempCanvas.getContext("2d").putImageData(cropped, 0, 0);
+    function showPopup(message) {
+      popup.textContent = message;
+      popup.classList.add("show");
+      setTimeout(() => {
+        popup.classList.remove("show");
+      }, 3000);
+    }
 
-      Tesseract.recognize(tempCanvas.toDataURL(), 'eng', { logger: m => console.log(m) })
-        .then(({ data: { text } }) => {
-          let history = text.match(/dragon|tiger|tie/gi) || [];
-          if (history.length < 5) {
-            showPopup("❌ History not detected properly");
-            return;
-          }
-
-          // Analyse pattern
-          let dragonCount = history.filter(h => h.toLowerCase() === "dragon").length;
-          let tigerCount = history.filter(h => h.toLowerCase() === "tiger").length;
-
-          let result = "";
-          if (dragonCount > tigerCount) {
-            result = "🐯 Tiger Next";
-          } else if (tigerCount > dragonCount) {
-            result = "🐉 Dragon Next";
-          } else {
-            result = history[history.length - 1].toLowerCase() === "dragon" ? "🐯 Tiger Next" : "🐉 Dragon Next";
-          }
-
-          setTimeout(() => {
-            showPopup(result);
-          }, 2000);
-        })
-        .catch(() => {
-          showPopup("❌ Error analysing");
-        });
-    });
+    function disableButtons() {
+      document.querySelectorAll("button").forEach(btn => {
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      });
+    }
   </script>
 </body>
 </html>
