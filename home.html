@@ -3,235 +3,171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dragon Tiger Analyzer</title>
+  <title>Dragon Tiger Predictor</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #0d1117;
-      color: #fff;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: white;
       text-align: center;
     }
-
-    header {
-      background: #161b22;
-      padding: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    h1 {
+      margin: 15px 0;
+      font-size: 22px;
+      color: gold;
     }
-
-    header img {
-      height: 40px;
+    #video {
+      width: 90%;
+      max-width: 400px;
+      margin: 10px auto;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
     }
-
-    #video-container {
-      position: relative;
-      display: flex;
-      justify-content: center;
-      margin-top: 10px;
-    }
-
-    video, canvas {
-      width: 360px;
-      height: 200px;
-      background: #000;
-      border-radius: 10px;
-      object-fit: cover;
-    }
-
-    /* Slim capture box */
-    #capture-box {
+    #captureBox {
       position: absolute;
-      top: 80px;
-      width: 300px;
-      height: 30px;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 40px; /* slim box */
+      transform: translate(-50%, -50%);
       border: 2px solid gold;
-      border-radius: 5px;
-      box-shadow: 0 0 10px gold;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(255,215,0,0.6);
       pointer-events: none;
     }
-
-    .controls {
-      margin-top: 15px;
-      display: flex;
-      justify-content: center;
-      gap: 12px;
-      flex-wrap: wrap;
+    #controls {
+      margin-top: 20px;
     }
-
     button {
-      background: linear-gradient(135deg, #ffcc00, #ff8800);
+      background: gold;
       border: none;
-      padding: 10px 18px;
-      font-size: 14px;
+      color: black;
+      padding: 10px 20px;
+      margin: 5px;
       border-radius: 8px;
-      color: #000;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
       transition: 0.3s;
     }
     button:hover {
-      transform: scale(1.05);
+      background: orange;
     }
-
-    /* Popup style */
     #popup {
       position: fixed;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: #161b22;
-      border: 2px solid gold;
-      border-radius: 10px;
-      padding: 20px 30px;
-      font-size: 22px;
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 20px;
+      border-radius: 12px;
+      font-size: 20px;
       font-weight: bold;
-      color: gold;
       display: none;
-      box-shadow: 0 0 20px gold;
       z-index: 1000;
-    }
-
-    footer {
-      margin-top: 30px;
-      padding: 10px;
-      background: #161b22;
-      display: flex;
-      justify-content: center;
-      gap: 15px;
-    }
-
-    footer a {
-      background: linear-gradient(135deg, #0099ff, #0066ff);
-      padding: 10px 20px;
-      border-radius: 8px;
-      color: #fff;
-      font-weight: bold;
-      text-decoration: none;
-      transition: 0.3s;
-    }
-    footer a:hover {
-      transform: scale(1.05);
+      min-width: 200px;
     }
   </style>
 </head>
 <body>
+  <h1>🐉 Dragon Tiger Predictor 🐯</h1>
 
-<header>
-  <img src="logo.png" alt="Logo">
-  <h2>Dragon Tiger Analyzer</h2>
-</header>
-
-<div id="video-container">
   <video id="video" autoplay playsinline></video>
+  <div id="captureBox"></div>
   <canvas id="canvas" style="display:none;"></canvas>
-  <div id="capture-box"></div>
-</div>
 
-<div class="controls">
-  <button id="start">Start Camera</button>
-  <button id="stop">Stop Camera</button>
-  <button id="captureAnalyse">Capture & Analyse</button>
-</div>
+  <div id="controls">
+    <button id="startBtn">Start Camera</button>
+    <button id="stopBtn">Stop Camera</button>
+    <button id="captureBtn">Capture & Analyse</button>
+  </div>
 
-<div id="popup"></div>
+  <div id="popup"></div>
 
-<footer>
-  <a href="https://game.teenpatty-master.com/f2RkdFx0UUJ4fQo=" target="_blank">🎮 Game Link</a>
-  <a href="https://t.me/+0_sTcsu0kA03YjA1" target="_blank">📢 Channel</a>
-</footer>
-
-<script>
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
-  const popup = document.getElementById("popup");
-  let stream = null;
-
-  // ✅ Mobile-only check
-  if (!/Mobi|Android/i.test(navigator.userAgent)) {
-    alert("Please open on mobile device");
-  }
-
-  document.getElementById("start").addEventListener("click", async () => {
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { exact: "environment" } }
-      });
-      video.srcObject = stream;
-    } catch (err) {
-      showPopup("⚠️ Camera not available");
-    }
-  });
-
-  document.getElementById("stop").addEventListener("click", () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-      video.srcObject = null;
-    }
-  });
-
-  // Capture + Analyse
-  document.getElementById("captureAnalyse").addEventListener("click", () => {
-    if (!stream) {
-      showPopup("⚠️ Start camera first!");
-      return;
-    }
-
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+    const popup = document.getElementById("popup");
+    let stream;
 
-    // Get slim box region
-    const box = document.getElementById("capture-box");
-    const rect = video.getBoundingClientRect();
-    const scaleX = video.videoWidth / rect.width;
-    const scaleY = video.videoHeight / rect.height;
+    // 📷 Start camera (only back camera)
+    document.getElementById("startBtn").onclick = async () => {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } }
+        });
+        video.srcObject = stream;
+      } catch (e) {
+        showPopup("⚠️ Back camera not available!");
+      }
+    };
 
-    const x = (box.offsetLeft - rect.left) * scaleX;
-    const y = (box.offsetTop - rect.top) * scaleY;
-    const w = box.offsetWidth * scaleX;
-    const h = box.offsetHeight * scaleY;
+    // ⛔ Stop camera
+    document.getElementById("stopBtn").onclick = () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        video.srcObject = null;
+      }
+    };
 
-    const imageData = ctx.getImageData(x, y, w, h).data;
+    // 🎯 Capture & Analyse
+    document.getElementById("captureBtn").onclick = () => {
+      if (!stream) {
+        showPopup("⚠️ Camera not started!");
+        return;
+      }
 
-    // Analyse colors
-    let dragon = 0, tiger = 0, tie = 0;
-    for (let i = 0; i < imageData.length; i += 4) {
-      const r = imageData[i];
-      const g = imageData[i + 1];
-      const b = imageData[i + 2];
+      // freeze
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-      if (b > 150 && r < 100) dragon++; // blue = dragon
-      else if (r > 150 && g < 100) tiger++; // red = tiger
-      else if (b > 180 && g > 180) tie++; // skyblue = tie
+      const box = document.getElementById("captureBox").getBoundingClientRect();
+      const videoRect = video.getBoundingClientRect();
+
+      // 📐 relative capture area
+      const sx = (box.left - videoRect.left) * (video.videoWidth / videoRect.width);
+      const sy = (box.top - videoRect.top) * (video.videoHeight / videoRect.height);
+      const sw = box.width * (video.videoWidth / videoRect.width);
+      const sh = box.height * (video.videoHeight / videoRect.height);
+
+      const imageData = ctx.getImageData(sx, sy, sw, sh);
+      const data = imageData.data;
+
+      let dragon = 0, tiger = 0, tie = 0;
+
+      // 🔍 flexible detection
+      for (let i = 0; i < data.length; i += 4) {
+        const r = data[i], g = data[i+1], b = data[i+2];
+
+        if (b > 120 && r < 100 && g < 100) dragon++;     // blue → Dragon
+        else if (r > 120 && g < 100 && b < 100) tiger++; // red → Tiger
+        else if (r > 100 && g > 200 && b > 200) tie++;   // sky → Tie
+      }
+
+      if (dragon < 300 && tiger < 300 && tie < 300) {
+        showPopup("⚠️ Dragon Tiger history not detected!");
+        return;
+      }
+
+      // 📊 Analyse pattern (basic rule)
+      let result;
+      if (dragon > tiger) result = "🐉 Dragon";
+      else if (tiger > dragon) result = "🐯 Tiger";
+      else result = "🐉 Dragon"; // tie bias → Dragon
+
+      showPopup("🔮 Predicted: " + result);
+    };
+
+    // 🔔 Popup
+    function showPopup(msg) {
+      popup.innerText = msg;
+      popup.style.display = "block";
+      setTimeout(() => { popup.style.display = "none"; }, 3000);
     }
-
-    if (dragon + tiger + tie < 1000) {
-      showPopup("⚠️ Dragon Tiger history not detected!");
-      return;
-    }
-
-    // Analyse logic
-    let result = "";
-    if (dragon >= tiger) result = "🐉 Dragon";
-    else result = "🐯 Tiger";
-
-    setTimeout(() => {
-      showPopup("Prediction: " + result);
-    }, 2000);
-  });
-
-  function showPopup(msg) {
-    popup.innerHTML = msg;
-    popup.style.display = "block";
-    setTimeout(() => {
-      popup.style.display = "none";
-    }, 3000);
-  }
-</script>
+  </script>
 </body>
 </html>
